@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the accompanying paper and this repository."
+type: software
+title: "Forecastability Limits of a P300-Derived EEG Proxy in BCIAUT-P300: Code and Analysis Inputs"
+version: 0.1.0
+url: "https://github.com/ada-teodorescu/forecastability-limits-proxy-bciaut-p300"
+repository-code: "https://github.com/ada-teodorescu/forecastability-limits-proxy-bciaut-p300"
+authors:
+  - family-names: "Teodorescu"
+    given-names: "Ada Daniela"
+  - family-names: "Brîndușescu"
+    given-names: "Alin"
+abstract: "Research code and saved results for causal forecasting and model comparison of a P300-derived EEG proxy on BCIAUT-P300."
+keywords:
+  - BCIAUT-P300
+  - EEG
+  - P300
+  - forecasting
