@@ -1,0 +1,22 @@
+\begin{table}[!ht]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.1}
+\caption{Horizon-5 ROC-AUC, with unadjusted descriptive 95\% subject-bootstrap intervals. Session-restricted results average 103 eligible sessions within subjects, then give the 15 subjects equal weight.}
+\label{tab:supp_ranking}
+\begin{tabular}{llrr}
+\toprule
+Predictor & Fit & Sessions pooled & Within-session \\
+\midrule
+Context mean & Raw & 0.6353 [0.5914, 0.6821] & 0.4742 [0.4463, 0.5024] \\
+GRU score & Raw & 0.6309 [0.5875, 0.6772] & 0.4692 [0.4413, 0.4967] \\
+GRU EEG & Raw & 0.5010 [0.4730, 0.5307] & 0.5004 [0.4750, 0.5288] \\
+GRU hybrid & Raw & 0.5984 [0.5695, 0.6284] & 0.4806 [0.4651, 0.4964] \\
+Context mean & Residual & 0.6353 [0.5914, 0.6821] & 0.4742 [0.4463, 0.5024] \\
+GRU score & Residual & 0.6324 [0.5893, 0.6789] & 0.4712 [0.4430, 0.4991] \\
+GRU EEG & Residual & 0.6316 [0.5903, 0.6772] & 0.4781 [0.4465, 0.5069] \\
+GRU hybrid & Residual & 0.6323 [0.5906, 0.6784] & 0.4798 [0.4508, 0.5077] \\
+\bottomrule
+\end{tabular}
+\end{table}

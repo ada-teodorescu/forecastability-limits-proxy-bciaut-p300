@@ -1,0 +1,4 @@
+component,population_variance,share_percent
+between_subjects,0.05911533725660368,32.46966244075886
+between_sessions_within_subjects,0.077817542716152099,42.742027047820606
+within_sessions,0.045130414847324524,24.788310511420537

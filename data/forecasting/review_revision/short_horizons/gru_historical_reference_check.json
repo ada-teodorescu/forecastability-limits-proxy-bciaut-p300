@@ -1,0 +1,22 @@
+{
+  "horizon": 5,
+  "max_epochs": 200,
+  "max_prediction_difference": 4.76837158203125e-07,
+  "original": {
+    "best_val_nll": -0.1456055343151092,
+    "n_epochs_trained": 82.0,
+    "selected_hidden_dim": 64.0,
+    "selected_learning_rate": 0.001
+  },
+  "patience": 20,
+  "predictions_agree_at_1e_6": true,
+  "recreated": {
+    "best_val_nll": -0.14560553431510925,
+    "n_epochs_trained": 82.0,
+    "selected_hidden_dim": 64.0,
+    "selected_learning_rate": 0.001
+  },
+  "seconds": 58.60411029995885,
+  "subject": "SBJ01",
+  "target_view": "raw_level"
+}

@@ -431,6 +431,7 @@ class Step8Config:
     batch_size: int = 64
     max_epochs: int = 100
     patience: int = 10
+    gradient_clip_max_norm: float | None = 1.0
     rolling_small_fold_max_epochs: int = 50
     rolling_small_fold_row_threshold: int = 80
     bootstrap_replicates: int = 2000
@@ -663,6 +664,10 @@ def validate_step8_config(config: Step8Config) -> None:
         raise ValueError("epoch counts must be positive")
     if config.patience <= 0:
         raise ValueError("patience must be positive")
+    if config.gradient_clip_max_norm is not None and (
+        not math.isfinite(config.gradient_clip_max_norm) or config.gradient_clip_max_norm <= 0
+    ):
+        raise ValueError("gradient_clip_max_norm must be positive and finite, or None")
     if config.max_workers < 0:
         raise ValueError("max_workers must be >= 0")
     if config.reserve_cores < 0:
@@ -1041,6 +1046,7 @@ def _train_with_validation(
     sigma_floor: float,
     batch_size: int,
     seed: int,
+    gradient_clip_max_norm: float | None = 1.0,
 ) -> tuple[int, float, np.ndarray]:
     _set_torch_determinism(seed)
     model = ProbabilisticGRU(
@@ -1074,7 +1080,8 @@ def _train_with_validation(
             if not torch.isfinite(loss):
                 raise ValueError(f"Non-finite training loss at epoch {epoch}")
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            if gradient_clip_max_norm is not None:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=gradient_clip_max_norm)
             optimizer.step()
 
         model.eval()
@@ -1111,6 +1118,7 @@ def _refit_and_predict(
     sigma_floor: float,
     batch_size: int,
     seed: int,
+    gradient_clip_max_norm: float | None = 1.0,
 ) -> tuple[np.ndarray, np.ndarray]:
     _set_torch_determinism(seed)
     model = ProbabilisticGRU(
@@ -1136,7 +1144,8 @@ def _refit_and_predict(
             if not torch.isfinite(loss):
                 raise ValueError(f"Non-finite refit loss at epoch {epoch}")
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            if gradient_clip_max_norm is not None:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=gradient_clip_max_norm)
             optimizer.step()
     return _predict_with_model(model, x_test)
 
@@ -1271,6 +1280,7 @@ def _tune_primary_hyperparameters(
                                     sigma_floor=float(config.sigma_floor),
                                     batch_size=int(config.batch_size),
                                     seed=_task_seed(config=config, offset=task_seed + candidate_offset + split_index),
+                                    gradient_clip_max_norm=config.gradient_clip_max_norm,
                                 )
                                 split_best_epochs.append(int(best_epoch))
                                 split_best_val_nlls.append(float(best_val_nll))
@@ -1345,6 +1355,7 @@ def _checkpoint_config_payload(config: Step8Config) -> dict[str, Any]:
         "batch_size": int(config.batch_size),
         "max_epochs": int(config.max_epochs),
         "patience": int(config.patience),
+        "gradient_clip_max_norm": config.gradient_clip_max_norm,
         "rolling_small_fold_max_epochs": int(config.rolling_small_fold_max_epochs),
         "rolling_small_fold_row_threshold": int(config.rolling_small_fold_row_threshold),
         "bootstrap_replicates": int(config.bootstrap_replicates),
@@ -1660,6 +1671,7 @@ def _run_primary_task(task: _PrimaryTaskSpec, *, primary_tables: dict[int, Step8
         sigma_floor=float(config.sigma_floor),
         batch_size=int(config.batch_size),
         seed=_task_seed(config=config, offset=task.task_index * 101 + 97),
+        gradient_clip_max_norm=config.gradient_clip_max_norm,
     )
 
     gaussian_lower_80 = test_mu - 1.2815515655446004 * test_sigma
@@ -1803,6 +1815,7 @@ def _run_rolling_task(task: _RollingTaskSpec, *, primary_tables: dict[int, Step8
             sigma_floor=float(config.sigma_floor),
             batch_size=int(config.batch_size),
             seed=_task_seed(config=config, offset=task.task_index * 73),
+            gradient_clip_max_norm=config.gradient_clip_max_norm,
         )
     final_preprocessor = _fit_preprocessor(
         table=table,
@@ -1836,6 +1849,7 @@ def _run_rolling_task(task: _RollingTaskSpec, *, primary_tables: dict[int, Step8
         sigma_floor=float(config.sigma_floor),
         batch_size=int(config.batch_size),
         seed=_task_seed(config=config, offset=task.task_index * 73 + 37),
+        gradient_clip_max_norm=config.gradient_clip_max_norm,
     )
     rolling_metrics = compute_regression_metrics_heteroscedastic(
         y_true=y[task.test_idx],

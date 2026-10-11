@@ -1,0 +1,14 @@
+{
+  "n_sessions": 105,
+  "nonpositive_avatar_means": 0,
+  "avatar_calibration_mean_quantiles": {
+    "min": 1.278974211215973,
+    "q25": 2.022496283054352,
+    "median": 2.293275761604309,
+    "q75": 2.478652334213257,
+    "max": 3.2800331830978395
+  },
+  "avatar_calibration_online_correlation": 0.9461129594855233,
+  "all_calibration_online_correlation": 0.958430087375259,
+  "online_minus_avatar_calibration_mean_bias": -0.44399735694556014
+}

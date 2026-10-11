@@ -1,0 +1,19 @@
+\begin{table}[!ht]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\caption{Post-hoc training-subject-fitted affine calibration correction. MAE gives subjects equal weight. Context and expanding means use observed online history; the correction uses only the held-out session's calibration mean.}
+\label{tab:supp_calibration_correction}
+\begin{tabular}{lrrr}
+\toprule
+Horizon & Context mean & Expanding mean & Corrected calibration \\
+\midrule
+1 & 0.1721 & 0.1691 & 0.1946 \\
+2 & 0.1724 & 0.1690 & 0.1940 \\
+3 & 0.1736 & 0.1697 & 0.1939 \\
+4 & 0.1741 & 0.1700 & 0.1938 \\
+5 & 0.1746 & 0.1701 & 0.1933 \\
+10 & 0.1741 & 0.1710 & 0.1932 \\
+15 & 0.1767 & 0.1720 & 0.1925 \\
+20 & 0.1773 & 0.1723 & 0.1919 \\
+25 & 0.1752 & 0.1739 & 0.1943 \\
+\bottomrule\end{tabular}\end{table}

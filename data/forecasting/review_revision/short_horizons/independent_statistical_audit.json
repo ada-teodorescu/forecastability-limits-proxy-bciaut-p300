@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "predictions_verified": 161700,
+  "subject_maes_verified": 600,
+  "paired_contrasts": 32,
+  "exhaustive_sign_assignments_per_nonzero_15_subject_test": 32768,
+  "maximum_p_value_difference": 0.0,
+  "all_32_holm_verified": true,
+  "all_8_local_holm_families_verified": true,
+  "all_32_bootstrap_intervals_verified": true
+}

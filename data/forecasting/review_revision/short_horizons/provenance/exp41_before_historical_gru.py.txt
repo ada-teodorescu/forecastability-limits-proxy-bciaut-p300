@@ -1,0 +1,571 @@
+"""Short-horizon extension of the paper's frozen Step 4/5 forecasting task.
+
+Only context mean, persistence, AR ridge, EEG PCR, and score-only GRU are
+evaluated. The original result files are never written. The historical GRU
+specification (200 epochs, patience 20) is explicit rather than inferred from
+the subsequently changed Step8Config defaults. Equivalent exact PCA
+decompositions are reused across candidates without changing the estimator.
+"""
+
+from __future__ import annotations
+
+import argparse
+import gc
+import hashlib
+import json
+import logging
+import os
+import platform
+import time
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from dataclasses import asdict, replace
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+import pandas as pd
+import torch
+from scipy.linalg import eigh
+from sklearn.decomposition import PCA
+from threadpoolctl import threadpool_limits
+
+from src.data.forecasting_loader import Step7Config, build_primary_folds, load_forecasting_table
+from src.data.loader import expected_session_ids
+from src.evaluation.forecasting_metrics import compute_paired_statistic, holm_correction
+from src.features.step6_forecasting_task import Step6Config, run_step6
+from src.models import step7_benchmarks as s7
+from src.models import step8_temporal as s8
+
+LOG = logging.getLogger(__name__)
+HORIZONS = (1, 2, 3, 4)
+VIEWS = ("raw_level", "context_residual")
+CLASSICAL_MODELS = ("context_score_mean", "persistence", "autoreg_ridge_5", "pcr_context_ts")
+MODELS = (*CLASSICAL_MODELS, "gru_score_only")
+ROOT = Path("data/forecasting/review_revision/short_horizons")
+REPORT = Path("docs/paper_revision/short_horizon_results.md")
+FIGURES = Path("outputs/forecasting/review_revision/short_horizons")
+_TABLE: Any = None
+_TABLE_KEY: tuple[str, int] | None = None
+_THREAD_LIMIT: Any = None
+
+
+def configs(root: Path = ROOT) -> tuple[Step6Config, Step7Config, s8.Step8Config]:
+    task = Step6Config(output_root=root / "task", figure_root=root / "task/figures", horizons=HORIZONS)
+    classical = Step7Config(step6_root=task.output_root, output_root=root / "classical",
+                            figure_root=FIGURES, horizons=HORIZONS, rolling_horizons=())
+    neural = s8.Step8Config(step6_root=task.output_root, step7_root=classical.output_root,
+                           output_root=root / "gru", figure_root=FIGURES, horizons=HORIZONS,
+                           rolling_horizons=(), rolling_ablations=(), max_epochs=200, patience=20,
+                           max_workers=1)
+    return task, classical, neural
+
+
+def digest(path: Path) -> str:
+    checksum = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            checksum.update(chunk)
+    return checksum.hexdigest()
+
+
+def file_hashes(paths: list[Path]) -> dict[str, str]:
+    return {path.as_posix(): digest(path) for path in sorted(set(paths))}
+
+
+def json_write(path: Path, value: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(value, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
+
+
+def protected_paths() -> list[Path]:
+    return list(Path("data/forecasting").glob("step[678]*.csv")) + [Path("paper.tex"),
+        Path("paper_without_revision.pdf"), Path("docs/paper_revision/supplementary_results.tex")]
+
+
+def source_paths() -> list[Path]:
+    return [Path("src/experiments/exp41_paper_short_horizons.py"),
+            Path("pipeline/exp41_paper_short_horizons.py"), Path("src/models/step7_benchmarks.py"),
+            Path("src/models/step8_temporal.py"), Path("src/data/forecasting_loader.py"),
+            Path("src/data/cv_splits.py"), Path("src/features/step6_forecasting_task.py"),
+            Path("src/evaluation/forecasting_metrics.py"), Path("uv.lock")]
+
+
+def input_paths() -> list[Path]:
+    paths: list[Path] = []
+    for subject, session in expected_session_ids():
+        prefix = f"sub-{int(subject[3:]):02d}_ses-{int(session[1:]):02d}"
+        paths.extend([Path(f"data/features/{prefix}_split-online_ts.npz"),
+                      Path(f"data/features/{prefix}_split-online_aligned.npz"),
+                      Path(f"data/scores/{prefix}_split-online_scores.npz"),
+                      Path(f"data/scores/{prefix}_split-calibration_scores.npz")])
+    return paths
+
+
+def prepare(root: Path = ROOT) -> None:
+    task, classical, neural = configs(root)
+    specification = {
+        "horizons": HORIZONS, "target_views": VIEWS, "models": MODELS,
+        "step6": asdict(task), "step7": asdict(classical), "step8": asdict(neural),
+        "inference": {
+            "primary_metric": "mae", "comparisons": "each of four alternatives versus context mean",
+            "paired_unit": "15 held-out subject MAEs", "test": "two-sided Wilcoxon, Pratt zeros",
+            "holm_primary_family": "all 32 new MAE comparisons (4 alternatives x 4 horizons x 2 views)",
+            "holm_local_family": "four alternatives within each horizon and target view, also reported",
+            "bootstrap": "10000 subject percentile resamples, unadjusted descriptive intervals",
+            "bootstrap_seed": 20261008, "alpha": 0.05,
+            "scope": "post-review extension; selection fixed before new results; no new ranking analysis",
+        },
+        "execution": {
+            "gru_seeds": "20260330 + 101*task_index + candidate_offset; refit +97",
+            "task_index": "original full three-ablation enumeration; keep score_only tasks",
+            "process_isolation": "each GRU task has an isolated PyTorch RNG",
+            "pcr": "reuse exact PCA eigen-decomposition across leading-component counts and views; "
+                   "verify against the original full-SVD estimator",
+        },
+    }
+    # JSON roundtrip normalises tuples and Path values for comparisons on resume.
+    specification = json.loads(json.dumps(specification, default=str))
+    hashes = file_hashes(source_paths() + input_paths())
+    plan_path = root / "protocol.json"
+    if plan_path.exists():
+        previous = json.loads(plan_path.read_text(encoding="utf-8"))
+        if previous["specification"] != specification or previous["source_input_sha256"] != hashes:
+            raise ValueError("Protocol or source/input snapshot changed; use a new output directory")
+        LOG.info("Existing locked protocol and input snapshot verified")
+        return
+    json_write(plan_path, {"locked_at_utc": datetime.now(timezone.utc).isoformat(),
+        "specification": specification, "source_input_sha256": hashes,
+        "protected_original_sha256": file_hashes(protected_paths()),
+        "environment": {"python": platform.python_version(), "torch": torch.__version__,
+                        "numpy": np.__version__, "platform": platform.platform()},
+        "historical_configuration_note": "Original Step 8 specification states 200 epochs/patience 20; "
+            "saved selections reach 200 epochs. Current defaults and the revised supplement say 100/10."})
+    LOG.info("Protocol locked before new model fitting")
+    run_step6(task)
+
+
+def _pca_scores(x_train: np.ndarray, x_other: np.ndarray, count: int) -> tuple[np.ndarray, np.ndarray]:
+    standardizer = s7.FeatureStandardizer.from_train(x_train)
+    z_train = standardizer.transform(x_train)
+    z_other = standardizer.transform(x_other)
+    center = z_train.mean(axis=0)
+    z_train -= center
+    z_other -= center
+    n_rows, n_features = z_train.shape
+    if n_rows >= n_features:
+        covariance = z_train.T @ z_train
+        values, vectors = eigh(covariance, subset_by_index=(n_features-count, n_features-1),
+                               check_finite=False)
+        components = vectors[:, ::-1]
+    else:
+        gram = z_train @ z_train.T
+        values, vectors = eigh(gram, subset_by_index=(n_rows-count, n_rows-1), check_finite=False)
+        if values[0] > np.finfo(np.float64).eps * values[-1] * max(z_train.shape):
+            components = (z_train.T @ vectors[:, ::-1]) / np.sqrt(values[::-1])
+        else:
+            components = None
+    if components is not None and values[0] > np.finfo(np.float64).eps * values[-1] * max(z_train.shape):
+        return z_train @ components, z_other @ components
+    # Retain full SVD for rank-deficient or numerically ill-conditioned inputs.
+    pca = PCA(n_components=count, svd_solver="full")
+    # sklearn's truncated fit_transform result can retain the full U matrix
+    # through an array view; copying releases that much larger backing array.
+    return pca.fit_transform(z_train).copy(), pca.transform(z_other)
+
+
+def _regress(scores_train: np.ndarray, scores_other: np.ndarray,
+             target: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    mean = float(np.mean(target))
+    centered = target - mean
+    if float(np.std(centered, ddof=0)) <= 1e-12:
+        return np.full(scores_train.shape[0], mean), np.full(scores_other.shape[0], mean)
+    coef, *_ = np.linalg.lstsq(scores_train, centered, rcond=None)
+    return scores_train @ coef + mean, scores_other @ coef + mean
+
+
+def fit_pcr_shared(*, table: Any, train_idx: np.ndarray, test_idx: np.ndarray,
+                       model_name: str, target_views: tuple[str, ...],
+                       config: Step7Config, protocol: str) -> dict[str, s7.ModelResult]:
+    """Same principal-subspace PCR estimator and grid, once per inner split."""
+    if model_name != "pcr_context_ts":
+        raise ValueError("This extension only optimizes the non-permuted EEG PCR")
+    x_train = s7._design_matrix(table, model_name, train_idx)
+    x_test = s7._design_matrix(table, model_name, test_idx)
+    targets = {view: np.asarray(s7.target_view_values(table, target_view=view)[train_idx],
+                                dtype=np.float64) for view in target_views}
+    splits = s7._inner_splits(table=table, train_idx=train_idx, protocol=protocol)
+    if not splits:
+        raise ValueError("LOSO extension requires grouped inner validation")
+    candidates = s7._feasible_component_candidates(config.pcr_component_grid, x=x_train)
+    feasible = min(min(len(local_train), x_train.shape[1]) for local_train, _ in splits)
+    candidates = [count for count in candidates if count <= feasible] or [max(1, feasible)]
+    cached = [_pca_scores(x_train[local_train], x_train[local_val], max(candidates))
+              for local_train, local_val in splits]
+    selected: dict[str, int] = {}
+    for view, target in targets.items():
+        best_count, best_mae = candidates[0], float("inf")
+        for count in candidates:
+            fold_maes = []
+            for (local_train, local_val), (scores_train, scores_val) in zip(splits, cached):
+                _, prediction = _regress(scores_train[:, :count], scores_val[:, :count], target[local_train])
+                fold_maes.append(s7._mae(target[local_val], prediction))
+            mae = float(np.mean(fold_maes))
+            if mae < best_mae - 1e-12:
+                best_count, best_mae = count, mae
+        selected[view] = best_count
+    scores_train, scores_test = _pca_scores(x_train, x_test, max(selected.values()))
+    results = {}
+    for view, target in targets.items():
+        count = selected[view]
+        train_pred, test_pred = _regress(scores_train[:, :count], scores_test[:, :count], target)
+        residuals = []
+        for (local_train, local_val), (local_scores, val_scores) in zip(splits, cached):
+            _, prediction = _regress(local_scores[:, :count], val_scores[:, :count], target[local_train])
+            residuals.append(target[local_val] - prediction)
+        results[view] = s7.ModelResult(train_pred=train_pred, test_pred=test_pred,
+            calibration_residuals=np.concatenate(residuals).astype(np.float64),
+            selected_alpha=None, selected_n_components=count, selected_l1_ratio=None)
+    return results
+
+
+def reference_check(root: Path = ROOT) -> None:
+    """Verify optimized PCR and baseline/AR implementations against saved h=5."""
+    _, classical, _ = configs(root)
+    original_config = replace(classical, step6_root=Path("data/forecasting"), horizons=(5,))
+    table = load_forecasting_table(horizon=5, config=original_config)
+    fold = build_primary_folds(table)[0]
+    historical = pd.read_csv("data/forecasting/step7_predictions.csv")
+    historical_selection = pd.read_csv("data/forecasting/step7_model_selection.csv")
+    checks = []
+    with threadpool_limits(limits=1):
+        for model in CLASSICAL_MODELS:
+            if model == "pcr_context_ts":
+                results = fit_pcr_shared(table=table, train_idx=fold.train_idx,
+                    test_idx=fold.test_idx, model_name=model, target_views=VIEWS,
+                    config=original_config, protocol="loso")
+            else:
+                results = s7.fit_and_predict_both_views(table=table, train_idx=fold.train_idx,
+                    test_idx=fold.test_idx, model_name=model, target_views=VIEWS,
+                    config=original_config, protocol="loso")
+            for view, result in results.items():
+                saved = historical[(historical.horizon == 5) & (historical.fold_subject_id == fold.fold_subject_id)
+                    & (historical.model_name == model) & (historical.target_view == view)]
+                np.testing.assert_array_equal(saved.anchor_idx.to_numpy(), table.anchor_idx[fold.test_idx])
+                np.testing.assert_array_equal(saved.session_id.to_numpy(), table.session_id[fold.test_idx])
+                np.testing.assert_allclose(result.test_pred, saved.y_pred_mean, rtol=0, atol=1e-8)
+                saved_selection = historical_selection[(historical_selection.horizon == 5)
+                    & (historical_selection.fold_subject_id == fold.fold_subject_id)
+                    & (historical_selection.model_name == model)
+                    & (historical_selection.target_view == view)].iloc[0]
+                if result.selected_n_components is not None:
+                    assert result.selected_n_components == int(saved_selection.selected_n_components)
+                checks.append({"model": model, "view": view, "horizon": 5,
+                    "held_out_subject": fold.fold_subject_id,
+                    "max_abs_prediction_difference": float(np.max(np.abs(result.test_pred - saved.y_pred_mean))),
+                    "selected_n_components": result.selected_n_components})
+    json_write(root / "reference_check.json", {"passed": True, "checks": checks})
+    LOG.info("Eight h=5 model/view prediction checks match saved paper outputs")
+
+
+def worker_init(threads: int) -> None:
+    global _THREAD_LIMIT
+    torch.set_num_threads(threads)
+    torch.set_num_interop_threads(1)
+    _THREAD_LIMIT = threadpool_limits(limits=threads)
+    # Patch only the isolated experiment worker, never the source module on disk.
+    s7._fit_pcr_both_views = fit_pcr_shared
+
+
+def worker_run(kind: str, task: Any, root_string: str) -> tuple[str, float]:
+    global _TABLE, _TABLE_KEY
+    root = Path(root_string)
+    _, classical, neural = configs(root)
+    key = (kind, task.horizon)
+    if key != _TABLE_KEY:
+        _TABLE = None
+        gc.collect()
+        _TABLE = (load_forecasting_table(horizon=task.horizon, config=classical) if kind == "classical"
+                  else s8.load_step8_forecasting_table(horizon=task.horizon, config=neural))
+        _TABLE_KEY = key
+    started = time.perf_counter()
+    if kind == "classical":
+        result = s7._run_primary_task(task, primary_tables={task.horizon: _TABLE}, config=classical)
+        folder = root / "checkpoints/classical"
+        checkpoint_key = s7._primary_checkpoint_key(task)
+        s7._save_checkpoint(folder, checkpoint_key, s7._primary_result_to_checkpoint(result))
+    else:
+        result = s8._run_primary_task(task, primary_tables={task.horizon: _TABLE}, config=neural)
+        folder = root / "checkpoints/gru"
+        checkpoint_key = s8._primary_checkpoint_key(task)
+        s8._save_checkpoint(folder, checkpoint_key, s8._primary_result_to_checkpoint(result))
+    return checkpoint_key, time.perf_counter() - started
+
+
+def task_specs(kind: str, root: Path = ROOT) -> list[Any]:
+    _, classical, neural = configs(root)
+    tasks = []
+    for horizon_index, horizon in enumerate(HORIZONS):
+        if kind == "classical":
+            table = load_forecasting_table(horizon=horizon, config=classical)
+            current = s7._build_primary_task_specs(primary_tables={horizon: table},
+                                                  config=replace(classical, horizons=(horizon,)))
+            tasks.extend(task for task in current if task.model_name in CLASSICAL_MODELS)
+        else:
+            table = s8.load_step8_forecasting_table(horizon=horizon, config=neural)
+            current = s8._build_primary_task_specs(primary_tables={horizon: table},
+                                                  config=replace(neural, horizons=(horizon,)))
+            # Retain the paper's full ablation enumeration in the seed offsets.
+            tasks.extend(replace(task, task_index=task.task_index + horizon_index * len(current))
+                         for task in current if task.ablation == "score_only")
+        del table
+        gc.collect()
+    return tasks
+
+
+def validate_task_splits(tasks: list[Any]) -> None:
+    for task in tasks:
+        if set(task.train_idx.tolist()).intersection(task.test_idx.tolist()):
+            raise ValueError("Outer train/test rows overlap")
+        assert len(task.test_idx) == 7 * (41 - task.horizon)
+        assert len(task.train_idx) == 14 * len(task.test_idx)
+
+
+def run_stage(kind: str, *, root: Path = ROOT, workers: int = 2, threads: int = 1) -> None:
+    tasks = task_specs(kind, root)
+    validate_task_splits(tasks)
+    folder = root / "checkpoints" / kind
+    module = s7 if kind == "classical" else s8
+    pending = [task for task in tasks if module._load_checkpoint(folder,
+                module._primary_checkpoint_key(task)) is None]
+    LOG.info("%s: %d/%d cached; %d pending; %d isolated processes", kind, len(tasks) - len(pending),
+             len(tasks), len(pending), workers)
+    started = time.perf_counter()
+    if pending:
+        with ProcessPoolExecutor(max_workers=workers, initializer=worker_init, initargs=(threads,)) as pool:
+            futures = {pool.submit(worker_run, kind, task, str(root)): task for task in pending}
+            for number, future in enumerate(as_completed(futures), start=1):
+                key, seconds = future.result()
+                LOG.info("%s completed %d/%d: %s (%.1f seconds; total %.1f min)",
+                         kind, number, len(pending), key, seconds, (time.perf_counter() - started) / 60)
+    aggregate_stage(kind, tasks, root)
+
+
+def aggregate_stage(kind: str, tasks: list[Any], root: Path = ROOT) -> None:
+    module = s7 if kind == "classical" else s8
+    metrics, predictions, selections = [], [], []
+    for task in tasks:
+        data = module._load_checkpoint(root / "checkpoints" / kind, module._primary_checkpoint_key(task))
+        if data is None:
+            raise ValueError(f"Missing completed {kind} task {task}")
+        metrics.extend(data["fold_metric_rows"])
+        predictions.extend(data["prediction_rows"])
+        selections.extend(data["model_selection_rows"])
+    destination = root / kind
+    destination.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(metrics).to_csv(destination / "fold_metrics.csv", index=False)
+    pd.DataFrame(predictions).to_csv(destination / "predictions.csv", index=False)
+    pd.DataFrame(selections).to_csv(destination / "model_selection.csv", index=False)
+    LOG.info("Saved %s: %d fold metrics, %d predictions", kind, len(metrics), len(predictions))
+
+
+def paired_results(metrics: pd.DataFrame) -> pd.DataFrame:
+    rows = []
+    for horizon in HORIZONS:
+        for view in VIEWS:
+            subset = metrics[(metrics.horizon == horizon) & (metrics.target_view == view)]
+            baseline = subset[subset.model_name == "context_score_mean"].set_index("fold_subject_id").sort_index()
+            for model in MODELS[1:]:
+                alternative = subset[subset.model_name == model].set_index("fold_subject_id").sort_index()
+                assert list(baseline.index) == list(alternative.index) and len(baseline) == 15
+                statistic = compute_paired_statistic(comparison_id=f"context_score_mean_vs_{model}",
+                    horizon=horizon, target_view=view, metric="mae", model_a="context_score_mean",
+                    model_b=model, metric_a=baseline.mae.to_numpy(), metric_b=alternative.mae.to_numpy(),
+                    bootstrap_seed=20261008, bootstrap_replicates=10000)
+                row = asdict(statistic)
+                row["percent_delta_vs_context"] = 100 * row["mean_delta_b_minus_a"] / row["mean_metric_a"]
+                rows.append(row)
+    frame = pd.DataFrame(rows)
+    frame["p_value_holm_all_32"] = holm_correction(frame.p_value.to_numpy())
+    for _, subset in frame.groupby(["horizon", "target_view"]):
+        frame.loc[subset.index, "p_value_holm_within_horizon_view"] = holm_correction(subset.p_value.to_numpy())
+    # Unambiguous primary adjusted p-value in the original shared field.
+    frame["p_value_holm"] = frame.p_value_holm_all_32
+    return frame
+
+
+def validate_predictions(root: Path, metrics: pd.DataFrame) -> dict[str, Any]:
+    _, classical_config, neural_config = configs(root)
+    maximum_error = 0.0
+    all_predictions = []
+    for kind, predicted_field in (("classical", "y_pred_mean"), ("gru", "y_pred_mu")):
+        frame = pd.read_csv(root / kind / "predictions.csv")
+        if kind == "gru":
+            frame["model_name"] = "gru_score_only"
+        counts = frame.groupby(["horizon", "target_view", "model_name", "fold_subject_id"]).size()
+        for (horizon, _, _, _), count in counts.items():
+            assert count == 7 * (41 - horizon)
+        assert (frame.fold_subject_id == frame.subject_id).all()
+        assert ((frame.target_idx - frame.anchor_idx) == frame.horizon).all()
+        assert (frame.anchor_idx >= 9).all() and (frame.target_idx <= 49).all()
+        assert not frame.duplicated(["horizon", "target_view", "model_name", "subject_id",
+                                      "session_id", "anchor_idx"]).any()
+        for horizon in HORIZONS:
+            table = (load_forecasting_table(horizon=horizon, config=classical_config) if kind == "classical"
+                     else s8.load_step8_forecasting_table(horizon=horizon, config=neural_config))
+            lookup = {(str(table.subject_id[i]), str(table.session_id[i]), int(table.anchor_idx[i])): i
+                       for i in range(table.n_rows)}
+            group = frame[frame.horizon == horizon]
+            indices = np.array([lookup[(row.subject_id, row.session_id, row.anchor_idx)]
+                                for row in group.itertuples()], dtype=np.int64)
+            raw = table.target_score_raw[indices].astype(np.float64)
+            context = table.context_score_mean_value[indices].astype(np.float64)
+            residual = table.target_score_context_residual[indices].astype(np.float64)
+            actual = np.where(group.target_view.to_numpy() == "raw_level", raw, residual)
+            np.testing.assert_allclose(actual, group.y_true, rtol=0, atol=1e-10)
+            if kind == "classical":
+                for model in ("context_score_mean", "persistence"):
+                    mask = group.model_name.to_numpy() == model
+                    original = context if model == "context_score_mean" else table.anchor_score_raw[indices]
+                    expected = np.where(group.target_view.to_numpy() == "raw_level", original, original - context)
+                    np.testing.assert_allclose(group.loc[mask, predicted_field], expected[mask], rtol=0, atol=1e-10)
+            del table
+        frame["absolute_error"] = np.abs(frame.y_true - frame[predicted_field])
+        calculated = frame.groupby(["horizon", "target_view", "model_name", "fold_subject_id"]).absolute_error.mean()
+        stored = metrics[metrics.model_name.isin(CLASSICAL_MODELS if kind == "classical" else ("gru_score_only",))]
+        stored = stored.set_index(["horizon", "target_view", "model_name", "fold_subject_id"]).mae.sort_index()
+        calculated = calculated.sort_index()
+        np.testing.assert_allclose(calculated, stored, rtol=0, atol=1e-12)
+        maximum_error = max(maximum_error, float(np.max(np.abs(calculated.to_numpy() - stored.to_numpy()))))
+        all_predictions.append({"kind": kind, "prediction_rows": len(frame), "fold_rows": len(stored)})
+    return {"passed": True, "checks": all_predictions, "max_mae_reconstruction_error": maximum_error,
+            "total_subject_metric_rows": len(metrics), "expected_subject_metric_rows": 600}
+
+
+def build_report(root: Path = ROOT) -> None:
+    classical = pd.read_csv(root / "classical/fold_metrics.csv")
+    neural = pd.read_csv(root / "gru/fold_metrics.csv")
+    neural["model_name"] = "gru_score_only"
+    metrics = pd.concat([classical, neural], ignore_index=True)
+    assert len(metrics) == 600
+    verification = validate_predictions(root, metrics)
+    metrics = metrics.sort_values(["horizon", "target_view", "model_name", "fold_subject_id"])
+    metrics.to_csv(root / "subject_metrics.csv", index=False)
+    paired = paired_results(metrics)
+    paired.to_csv(root / "paired_mae_stats.csv", index=False)
+    summary = metrics.groupby(["horizon", "target_view", "model_name"]).agg(
+        n_subjects=("mae", "size"), mae_mean=("mae", "mean"), mae_subject_sd=("mae", "std"),
+        rmse_mean=("rmse", "mean"), gaussian_nll_mean=("gaussian_nll", "mean"),
+        test_examples=("n_test_rows", "sum")).reset_index()
+    summary = summary.merge(paired[["horizon", "target_view", "model_b", "mean_delta_b_minus_a",
+        "bootstrap_ci_lower", "bootstrap_ci_upper", "p_value", "p_value_holm_all_32",
+        "p_value_holm_within_horizon_view"]], left_on=["horizon", "target_view", "model_name"],
+        right_on=["horizon", "target_view", "model_b"], how="left").drop(columns="model_b")
+    summary.to_csv(root / "summary.csv", index=False)
+    plan = json.loads((root / "protocol.json").read_text(encoding="utf-8"))
+    for name, expected in plan["source_input_sha256"].items():
+        if digest(Path(name)) != expected:
+            raise ValueError(f"Source/input changed during fitting: {name}")
+    for name, expected in plan["protected_original_sha256"].items():
+        if digest(Path(name)) != expected:
+            raise ValueError(f"Original file changed during experiment: {name}")
+    verification["source_inputs_unchanged"] = True
+    verification["original_files_unchanged"] = True
+    json_write(root / "verification.json", verification)
+    _make_figure(summary)
+    labels = {"context_score_mean": "Context mean", "persistence": "Persistence",
+              "autoreg_ridge_5": "AR ridge", "pcr_context_ts": "EEG PCR", "gru_score_only": "Score-only GRU"}
+    lines = ["# Paper benchmark extension: horizons 1–4", "",
+        "Completed with the paper's frozen proxy and ten-block history across all 15 subjects and 105 sessions.", "",
+        "The five models and all 32 baseline contrasts were specified before fitting. Both raw and context-residual targets were fitted separately.", "",
+        "## Mean absolute error", ""]
+    for view in VIEWS:
+        lines.extend([f"### {view}", "", "| Model | h=1 | h=2 | h=3 | h=4 |", "| --- | ---: | ---: | ---: | ---: |"])
+        for model in MODELS:
+            values = [float(summary[(summary.target_view == view) & (summary.horizon == h)
+                                     & (summary.model_name == model)].iloc[0].mae_mean) for h in HORIZONS]
+            lines.append(f"| {labels[model]} | " + " | ".join(f"{value:.6f}" for value in values) + " |")
+        lines.append("")
+    gains = paired[(paired.mean_delta_b_minus_a < 0) & (paired.p_value_holm_all_32 < .05)]
+    lines.extend(["## Interpretation", ""])
+    if gains.empty:
+        lines.append("No tested alternative achieves lower MAE with significance after Holm correction across all 32 extension comparisons. This is limited evidence about these models, rather than proof that short-term signal is absent.")
+    else:
+        lines.append("The following alternatives improve on the context mean after Holm correction across all 32 extension comparisons:")
+        lines.append("")
+        for row in gains.itertuples():
+            lines.append(f"- {labels[row.model_b]}, {row.target_view}, h={row.horizon}: MAE difference "
+                         f"{row.mean_delta_b_minus_a:+.6f} ({row.percent_delta_vs_context:+.2f}%), adjusted p={row.p_value_holm_all_32:.6g}.")
+    lower = paired[paired.mean_delta_b_minus_a < 0]
+    lines.extend(["", f"{len(lower)} of the 32 contrasts have a lower descriptive mean MAE. The CSV reports every effect, including improvements that are not statistically established.", "",
+        "## Protocol and assumptions", "",
+        "- Inputs are the original Step 4 tangent features and Step 5 raw proxy; no score construction, calibration reference, or normalization is refitted.",
+        "- Histories end at the observed anchor and stay within their subject/session. The 40, 39, 38, and 37 eligible anchors per session yield 4200, 4095, 3990, and 3885 examples at h=1–4.",
+        "- Outer validation leaves out each of the 15 subjects. Classical preprocessing and tuning use five-fold GroupKFold within the 14 training subjects, optimizing validation MAE.",
+        "- GRU validation uses the last two sorted training subjects; the four hidden-size/learning-rate candidates, NLL objective, batch size 64, dropout 0.2 and weight decay 0.0001 match the original specification. Refit uses all 14 training subjects for the selected best epoch.",
+        "- Historical GRU training uses a 200-epoch cap and patience 20. This resolves a mismatch with current code defaults and supplementary wording (100/10); the saved original selections reach 200 epochs. This extension does not use the shorter defaults.",
+        "- Original full three-ablation task enumeration determines score-only GRU seeds. Worker processes isolate random states; historical bitwise identity is not claimed.",
+        "- EEG PCR uses the unchanged principal-subspace estimator and component grid. An exact symmetric eigen-decomposition computes the same PCA subspace, with full-SVD fallback for ill-conditioned inputs. Decompositions are shared across candidates and views. Tests, reference_check.json and eigen_factorization_check.json verify agreement with the original full-SVD predictions and selected settings.",
+        "- MAE averages examples within each subject, then averages the 15 subjects equally. Windows are not independent inference units.",
+        "- Two-sided Wilcoxon tests use the original Pratt zero handling. Primary Holm correction covers all 32 new MAE comparisons; four-test correction within each horizon/view is provided separately. These families differ from the original paper's seven-classical/ten-GRU contrast families because this is a five-model extension.",
+        "- Paired bootstrap intervals use 10000 subject resamples and are unadjusted descriptive intervals conditional on fitted predictions. Shared LOSO training limits independence; these intervals and tests do not prove equivalence.",
+        "- The extension follows reviewer feedback and uses already studied subjects; it is not a new independent validation cohort or externally preregistered experiment.", "",
+        "## Reproduction", "", "~~~powershell", "uv run python pipeline/exp41_paper_short_horizons.py --stage all --workers 2", "~~~", "",
+        "Individual stages are prepare, reference-check, classical, gru, and report. Completed fold checkpoints are retained for resuming. The protocol hashes input files and source; changing the protocol requires a new output directory.", "",
+        "Results: data/forecasting/review_revision/short_horizons/summary.csv; full subject metrics, predictions, selections, paired statistics, protocol and verification are alongside it.", "",
+        "Original paper results and manuscript files were verified unchanged. No new ranking analysis was run.", ""])
+    REPORT.parent.mkdir(parents=True, exist_ok=True)
+    REPORT.write_text("\n".join(lines), encoding="utf-8")
+    LOG.info("Complete: 40 summaries, 600 subject metrics, 32 paired contrasts. Report: %s", REPORT)
+
+
+def _make_figure(summary: pd.DataFrame) -> None:
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    labels = {"context_score_mean": "Context mean", "persistence": "Persistence", "autoreg_ridge_5": "AR ridge",
+              "pcr_context_ts": "EEG PCR", "gru_score_only": "Score-only GRU"}
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4), sharey=True, constrained_layout=True)
+    for axis, view in zip(axes, VIEWS):
+        for model in MODELS:
+            rows = summary[(summary.target_view == view) & (summary.model_name == model)].sort_values("horizon")
+            axis.plot(rows.horizon, rows.mae_mean, marker="o", label=labels[model])
+        axis.set_title("Raw-score fitting" if view == "raw_level" else "Residual-target fitting")
+        axis.set_xlabel("Forecast horizon (blocks)")
+        axis.set_xticks(HORIZONS)
+        axis.grid(alpha=.2)
+    axes[0].set_ylabel("Mean subject MAE (lower is better)")
+    axes[1].legend(fontsize=8)
+    FIGURES.mkdir(parents=True, exist_ok=True)
+    fig.savefig(FIGURES / "short_horizon_mae.png", dpi=200)
+    plt.close(fig)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--stage", choices=("prepare", "reference-check", "classical", "gru", "report", "all"), default="all")
+    parser.add_argument("--workers", type=int, default=2)
+    parser.add_argument("--threads", type=int, default=1)
+    parser.add_argument("--output-root", type=Path, default=ROOT)
+    args = parser.parse_args()
+    if args.workers < 1 or args.threads < 1:
+        parser.error("workers and threads must be positive")
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    # Limit small-matrix BLAS/PyTorch threading; isolation is supplied by processes.
+    torch.set_num_threads(args.threads)
+    os.environ["OMP_NUM_THREADS"] = str(args.threads)
+    os.environ["MKL_NUM_THREADS"] = str(args.threads)
+    with threadpool_limits(limits=args.threads):
+        prepare(args.output_root)
+        if args.stage in ("reference-check", "all"):
+            reference_check(args.output_root)
+        if args.stage in ("classical", "all"):
+            run_stage("classical", root=args.output_root, workers=args.workers, threads=args.threads)
+        if args.stage in ("gru", "all"):
+            run_stage("gru", root=args.output_root, workers=args.workers, threads=args.threads)
+        if args.stage in ("report", "all"):
+            build_report(args.output_root)
+
+
+if __name__ == "__main__":
+    main()

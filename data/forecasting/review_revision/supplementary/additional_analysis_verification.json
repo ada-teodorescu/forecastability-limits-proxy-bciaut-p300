@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "baseline_examples_verified": 29820,
+  "subject_maes_verified": 405,
+  "exact_signed_rank_tests_verified": 18,
+  "holm_family_size": 18,
+  "paired_bootstrap_intervals_verified": 18,
+  "h5_residual_gru_pairs_verified": 3780,
+  "h5_residual_gru_session_correlations_verified": 105,
+  "training_only_affine_fits_verified": 15,
+  "corrected_calibration_predictions_verified": 29820,
+  "corrected_calibration_subject_maes_verified": 135,
+  "calibration_correction_tests_verified": 18,
+  "calibration_correction_holm_family_size": 18,
+  "calibration_correction_summary_intervals_verified": 9,
+  "provenance_input_hashes_verified": 217
+}

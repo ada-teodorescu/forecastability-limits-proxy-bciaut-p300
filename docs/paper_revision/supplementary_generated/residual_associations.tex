@@ -1,0 +1,23 @@
+\begin{table}[!ht]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\caption{Within-session Pearson associations between predicted and observed context residuals for separately fitted residual-target models. Session correlations are averaged within subjects, then subjects equally. Subject uncertainty is in the companion CSV.}
+\label{tab:supp_residual_associations}
+\begin{tabular}{lrrrrr}
+\toprule
+Residual-target model & 5 & 10 & 15 & 20 & 25 \\
+\midrule
+AR ridge (5) & +0.172 & +0.114 & +0.124 & +0.146 & +0.081 \\
+EEG ridge & +0.013 & +0.010 & -0.004 & +0.012 & +0.069 \\
+EEG elastic-net & +0.060 & --- & --- & +0.051 & +0.058 \\
+EEG PCR & +0.146 & +0.108 & +0.026 & +0.036 & -0.026 \\
+EEG PLS & +0.159 & +0.113 & +0.094 & +0.109 & +0.036 \\
+Riemannian KNN & +0.011 & -0.006 & +0.024 & +0.026 & +0.018 \\
+Permuted EEG PCR & -0.005 & +0.015 & -0.013 & -0.034 & -0.011 \\
+Hybrid ridge & +0.051 & +0.042 & +0.014 & +0.036 & +0.071 \\
+Hybrid PCR & +0.160 & +0.115 & +0.072 & +0.040 & -0.027 \\
+Hybrid PLS & +0.166 & +0.118 & +0.100 & +0.115 & +0.040 \\
+GRU score & +0.182 & +0.112 & +0.095 & +0.136 & +0.091 \\
+GRU EEG & +0.173 & +0.161 & +0.138 & +0.112 & +0.049 \\
+GRU hybrid & +0.197 & +0.179 & +0.162 & +0.136 & +0.069 \\
+\bottomrule\end{tabular}\end{table}

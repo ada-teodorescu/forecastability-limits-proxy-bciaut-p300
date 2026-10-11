@@ -1,0 +1,23 @@
+{
+  "main_equations_unchanged": true,
+  "main_tables_unchanged": true,
+  "citation_commands_unchanged": true,
+  "supplement_analysis_body_unchanged": true,
+  "pdfs": {
+    "paper": {
+      "pages": 6,
+      "all_a4": true,
+      "repository_hyperlink": true,
+      "unresolved_markers": 0,
+      "sha256": "b687ebf59548818560ab8a95e7ac863f81e15acb51f3d75e85629664eda641bb"
+    },
+    "supplementary_results": {
+      "pages": 10,
+      "all_a4": true,
+      "repository_hyperlink": true,
+      "unresolved_markers": 0,
+      "sha256": "b54150579c02350527e2a5794d0816aa76f77509e5efdcf63190e4e1aa907af1"
+    }
+  },
+  "visual_review": "All pages inspected in contact sheets; revised main methods, final page, and supplementary opening inspected at full page size."
+}

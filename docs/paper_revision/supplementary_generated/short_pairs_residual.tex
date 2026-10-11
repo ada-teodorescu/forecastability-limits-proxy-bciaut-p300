@@ -1,0 +1,30 @@
+\begin{table}[!ht]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.1}
+\caption{Residual-target short-horizon MAE differences (alternative minus context mean). Intervals are unadjusted descriptive 95\% paired-subject bootstraps. Primary $p_{32}$ corrects all 32 additional comparisons; $p_4$ corrects within each horizon/view.}
+\label{tab:supp_short_pairs_residual}
+\begin{tabular}{lrrlrr}
+\toprule
+Alternative & $h$ & $\Delta$ MAE & 95\% interval & $p_{32}$ & $p_4$ \\
+\midrule
+Persistence & 1 & +0.05628 & [+0.04914, +0.06454] & 0.0020 & 0.0002 \\
+Persistence & 2 & +0.05740 & [+0.05207, +0.06278] & 0.0020 & 0.0002 \\
+Persistence & 3 & +0.05731 & [+0.05069, +0.06372] & 0.0020 & 0.0002 \\
+Persistence & 4 & +0.05655 & [+0.05080, +0.06245] & 0.0020 & 0.0002 \\
+AR ridge (5) & 1 & +0.00025 & [-0.00020, +0.00090] & 1.0000 & 1.0000 \\
+AR ridge (5) & 2 & +0.00015 & [-0.00033, +0.00080] & 1.0000 & 1.0000 \\
+AR ridge (5) & 3 & +0.00013 & [-0.00037, +0.00079] & 1.0000 & 0.8040 \\
+AR ridge (5) & 4 & +0.00003 & [-0.00040, +0.00054] & 1.0000 & 1.0000 \\
+EEG PCR & 1 & +0.00000 & [-0.00091, +0.00105] & 1.0000 & 1.0000 \\
+EEG PCR & 2 & -0.00017 & [-0.00111, +0.00085] & 1.0000 & 1.0000 \\
+EEG PCR & 3 & -0.00055 & [-0.00148, +0.00057] & 1.0000 & 0.4061 \\
+EEG PCR & 4 & -0.00075 & [-0.00191, +0.00079] & 0.8857 & 0.1661 \\
+GRU score & 1 & +0.00088 & [-0.00028, +0.00232] & 1.0000 & 1.0000 \\
+GRU score & 2 & +0.00060 & [-0.00031, +0.00181] & 1.0000 & 1.0000 \\
+GRU score & 3 & +0.00043 & [-0.00013, +0.00109] & 1.0000 & 0.5537 \\
+GRU score & 4 & +0.00016 & [-0.00046, +0.00085] & 1.0000 & 1.0000 \\
+\bottomrule
+\end{tabular}
+\end{table}

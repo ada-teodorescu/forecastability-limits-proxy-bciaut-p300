@@ -1,0 +1,180 @@
+{
+  "inputs": [
+    {
+      "path": "data/forecasting/step6_detrended_exploration.csv",
+      "sha256": "63ab9b7b0eb8ceda72794e0331fcc222417cf105dace6dbcd44a8b6f6fca6222"
+    },
+    {
+      "path": "data/forecasting/review_revision/supplementary/full_model_summary.csv",
+      "sha256": "fd87b9e64213032c148dc2f80ba86faa59203b5803478720dd29debc903ba5a9"
+    }
+  ],
+  "correlation_aggregation": "Pearson correlation pooling all within-session lag pairs.",
+  "full_session_centring": "Retrospective diagnostic using the full online session mean.",
+  "forecast_aggregation": "Equal-subject mean of 15 paired LOSO MAE differences.",
+  "intervals": "Existing unadjusted descriptive 95% subject-bootstrap intervals, conditional on fitted predictions.",
+  "plotted_forecast_points": [
+    {
+      "model_key": "gru_score_only",
+      "target_view": "raw_level",
+      "horizon": 5,
+      "mean_delta": 0.003449335079344475,
+      "ci_lower": 0.0010902212130487236,
+      "ci_upper": 0.006153770110436839
+    },
+    {
+      "model_key": "gru_score_only",
+      "target_view": "raw_level",
+      "horizon": 10,
+      "mean_delta": 0.003140637200732012,
+      "ci_lower": 0.0008749236763897255,
+      "ci_upper": 0.005846478039950971
+    },
+    {
+      "model_key": "gru_score_only",
+      "target_view": "raw_level",
+      "horizon": 15,
+      "mean_delta": 0.004644204452360957,
+      "ci_lower": 0.0017601725573723349,
+      "ci_upper": 0.007899078082143183
+    },
+    {
+      "model_key": "gru_score_only",
+      "target_view": "raw_level",
+      "horizon": 20,
+      "mean_delta": 0.004226389817910413,
+      "ci_lower": 0.001187667593934363,
+      "ci_upper": 0.007512369833700786
+    },
+    {
+      "model_key": "gru_score_only",
+      "target_view": "raw_level",
+      "horizon": 25,
+      "mean_delta": 0.005669344074669341,
+      "ci_lower": 0.00032532106552805845,
+      "ci_upper": 0.011335131320215424
+    },
+    {
+      "model_key": "gru_score_only",
+      "target_view": "context_residual",
+      "horizon": 5,
+      "mean_delta": 0.0006198945928267326,
+      "ci_lower": -0.000174488154902188,
+      "ci_upper": 0.0015158653810359818
+    },
+    {
+      "model_key": "gru_score_only",
+      "target_view": "context_residual",
+      "horizon": 10,
+      "mean_delta": 0.00027184336313536007,
+      "ci_lower": -0.0004861449766954244,
+      "ci_upper": 0.0010728926136913495
+    },
+    {
+      "model_key": "gru_score_only",
+      "target_view": "context_residual",
+      "horizon": 15,
+      "mean_delta": 0.0007437375861814043,
+      "ci_lower": -0.0003205143775385538,
+      "ci_upper": 0.0020101924612670407
+    },
+    {
+      "model_key": "gru_score_only",
+      "target_view": "context_residual",
+      "horizon": 20,
+      "mean_delta": 0.0003962654085320945,
+      "ci_lower": -0.0015465782591537088,
+      "ci_upper": 0.0021546943687978932
+    },
+    {
+      "model_key": "gru_score_only",
+      "target_view": "context_residual",
+      "horizon": 25,
+      "mean_delta": 0.00010521092876192851,
+      "ci_lower": -0.0012317205131451773,
+      "ci_upper": 0.0013913200876309653
+    },
+    {
+      "model_key": "gru_hybrid",
+      "target_view": "raw_level",
+      "horizon": 5,
+      "mean_delta": 0.017687350574624592,
+      "ci_lower": 0.007113726623947635,
+      "ci_upper": 0.031457305098021464
+    },
+    {
+      "model_key": "gru_hybrid",
+      "target_view": "raw_level",
+      "horizon": 10,
+      "mean_delta": 0.019726231625552548,
+      "ci_lower": 0.011607083735469667,
+      "ci_upper": 0.029298119870473704
+    },
+    {
+      "model_key": "gru_hybrid",
+      "target_view": "raw_level",
+      "horizon": 15,
+      "mean_delta": 0.01570585579662535,
+      "ci_lower": 0.00862552511004304,
+      "ci_upper": 0.023635575966193135
+    },
+    {
+      "model_key": "gru_hybrid",
+      "target_view": "raw_level",
+      "horizon": 20,
+      "mean_delta": 0.015757254029617855,
+      "ci_lower": 0.008359353953208004,
+      "ci_upper": 0.023872539060456426
+    },
+    {
+      "model_key": "gru_hybrid",
+      "target_view": "raw_level",
+      "horizon": 25,
+      "mean_delta": 0.014533307793594545,
+      "ci_lower": 0.005804217440918806,
+      "ci_upper": 0.024193480656970107
+    },
+    {
+      "model_key": "gru_hybrid",
+      "target_view": "context_residual",
+      "horizon": 5,
+      "mean_delta": -0.0008821834697242922,
+      "ci_lower": -0.0023131169898481974,
+      "ci_upper": 0.0005323024713462008
+    },
+    {
+      "model_key": "gru_hybrid",
+      "target_view": "context_residual",
+      "horizon": 10,
+      "mean_delta": 0.0003499875615705657,
+      "ci_lower": -0.0015912237462017002,
+      "ci_upper": 0.0023625753488900913
+    },
+    {
+      "model_key": "gru_hybrid",
+      "target_view": "context_residual",
+      "horizon": 15,
+      "mean_delta": 0.0014723611524372904,
+      "ci_lower": -0.001004133422889078,
+      "ci_upper": 0.004321945412010905
+    },
+    {
+      "model_key": "gru_hybrid",
+      "target_view": "context_residual",
+      "horizon": 20,
+      "mean_delta": 0.0009095411509319704,
+      "ci_lower": -0.0018548645432473647,
+      "ci_upper": 0.0037530074417424742
+    },
+    {
+      "model_key": "gru_hybrid",
+      "target_view": "context_residual",
+      "horizon": 25,
+      "mean_delta": 0.0009235745778867118,
+      "ci_lower": -0.0012002457387903505,
+      "ci_upper": 0.0033461046646732786
+    }
+  ],
+  "models_fitted": false,
+  "horizon_offsets": "Forecast points are offset horizontally for display only."
+}

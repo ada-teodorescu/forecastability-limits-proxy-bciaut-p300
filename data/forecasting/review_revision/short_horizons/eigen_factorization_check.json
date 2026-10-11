@@ -1,0 +1,36 @@
+{
+  "checks": [
+    {
+      "max_prediction_difference": 4.6629367034256575e-15,
+      "subject": "SBJ01",
+      "view": "raw_level"
+    },
+    {
+      "max_prediction_difference": 4.85722573273506e-16,
+      "subject": "SBJ01",
+      "view": "context_residual"
+    },
+    {
+      "max_prediction_difference": 3.1086244689504383e-15,
+      "subject": "SBJ02",
+      "view": "raw_level"
+    },
+    {
+      "max_prediction_difference": 6.106226635438361e-16,
+      "subject": "SBJ02",
+      "view": "context_residual"
+    },
+    {
+      "max_prediction_difference": 9.769962616701378e-15,
+      "subject": "SBJ03",
+      "view": "raw_level"
+    },
+    {
+      "max_prediction_difference": 2.0660556598883772e-15,
+      "subject": "SBJ03",
+      "view": "context_residual"
+    }
+  ],
+  "passed": true,
+  "seconds": 45.20842390006874
+}

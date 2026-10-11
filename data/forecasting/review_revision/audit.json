@@ -1,0 +1,8 @@
+{
+  "prediction_rows": 81900,
+  "changed_baseline_mean_rows": 35100,
+  "max_baseline_mean_error": 0.0,
+  "max_baseline_probability_difference_between_views": 1.7917372585607438e-09,
+  "max_gru_probability_change": 0.0,
+  "endpoint_labels_identical_between_views": true
+}

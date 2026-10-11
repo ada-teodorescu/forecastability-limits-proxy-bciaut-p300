@@ -1,0 +1,75 @@
+{
+  "observed_tests_verified": 340,
+  "holm_families_verified": 40,
+  "original_sensitivity_values_verified": 340,
+  "implementation_checks": "passed",
+  "new_experiments": false,
+  "analysis_method": "Existing paired-t sensitivity approximation; existing exact signed-rank and Holm tests",
+  "formula": "(t_quantile(0.975,14) + t_quantile(0.80,14)) * sample_SD(paired_differences) / sqrt(15)",
+  "power_target": 0.8,
+  "uncorrected_two_sided_alpha": 0.05,
+  "sensitivity_values": [
+    {
+      "horizon": 5,
+      "n_subjects": 15,
+      "sd_paired_difference": 0.005162073261014097,
+      "minimum_detectable_delta_80": 0.004015640398888399,
+      "baseline_MAE": 0.17455014793409243,
+      "percent_of_baseline_MAE": 2.3005654514854066,
+      "p_value": 0.01507568359375,
+      "p_value_holm": 0.04522705078125
+    },
+    {
+      "horizon": 10,
+      "n_subjects": 15,
+      "sd_paired_difference": 0.0051574145515952425,
+      "minimum_detectable_delta_80": 0.004012016331424978,
+      "baseline_MAE": 0.1740589610122133,
+      "percent_of_baseline_MAE": 2.3049754566462477,
+      "p_value": 0.063720703125,
+      "p_value_holm": 0.063720703125
+    },
+    {
+      "horizon": 15,
+      "n_subjects": 15,
+      "sd_paired_difference": 0.006222058715027433,
+      "minimum_detectable_delta_80": 0.0048402161451330025,
+      "baseline_MAE": 0.17672863592267474,
+      "percent_of_baseline_MAE": 2.7387843061555537,
+      "p_value": 0.012451171875,
+      "p_value_holm": 0.037353515625
+    },
+    {
+      "horizon": 20,
+      "n_subjects": 15,
+      "sd_paired_difference": 0.0065141584530249794,
+      "minimum_detectable_delta_80": 0.005067444130691896,
+      "baseline_MAE": 0.1772614248282785,
+      "percent_of_baseline_MAE": 2.8587404933707194,
+      "p_value": 0.01507568359375,
+      "p_value_holm": 0.060302734375
+    },
+    {
+      "horizon": 25,
+      "n_subjects": 15,
+      "sd_paired_difference": 0.01114296834212211,
+      "minimum_detectable_delta_80": 0.00866825238148007,
+      "baseline_MAE": 0.1752293146348425,
+      "percent_of_baseline_MAE": 4.946804933605828,
+      "p_value": 0.1353759765625,
+      "p_value_holm": 0.270751953125
+    }
+  ],
+  "software_versions": {
+    "python": "3.14.3",
+    "numpy": "2.4.3",
+    "scipy": "1.17.1"
+  },
+  "input_sha256": {
+    "data/forecasting/step7_fold_metrics.csv": "58bdede9b81796cc2249e26eb907dc16beaf5361db3aa79e44c990fe11b3dc1f",
+    "data/forecasting/step7_paired_stats.csv": "02162ef8172260f709170992ff726b91433f05b6bae0cad9aa9251b78840ab6c",
+    "data/forecasting/step8_fold_metrics.csv": "8817fb806972611460cfde9b83e927e32fb42a5c22d1cbef578e3e248490dcec",
+    "data/forecasting/step8_paired_stats.csv": "9534cc2cb88c37b753b6f67469074986c37f91c4a7988ea05a1b73fb6f2d24a7"
+  },
+  "script_sha256": "9774f6c6147bf4ed895ab9c62e9d3608473c28b58976e4a6e6152dc00335971b"
+}

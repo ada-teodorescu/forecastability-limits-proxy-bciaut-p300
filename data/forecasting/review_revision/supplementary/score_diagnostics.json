@@ -1,0 +1,7 @@
+{
+  "between_subject_and_session_share_percent": 75.21168948857947,
+  "context_vs_full_session_mean_correlation": 0.9841124834619088,
+  "context_vs_full_session_mean_mae": 0.05194732703954454,
+  "context_vs_future_h5_correlation": 0.847207282544977,
+  "anchor_vs_future_h5_correlation": 0.7467499508781971
+}

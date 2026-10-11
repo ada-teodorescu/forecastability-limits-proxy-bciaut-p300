@@ -1,0 +1,30 @@
+\begin{table}[!ht]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.1}
+\caption{Residual-target MAE differences (model minus context mean), with unadjusted descriptive 95\% subject-fold bootstrap intervals. The final column identifies an original direct baseline test.}
+\label{tab:supp_deltas_residual}
+\begin{tabular}{lrrr}
+\toprule
+Model & $h=5$: difference [CI] & $h=25$: difference [CI] & Direct test \\
+\midrule
+Persistence & +0.0575 [+0.0492, +0.0651] & +0.0662 [+0.0595, +0.0725] & Yes \\
+Moving average (5) & +0.0084 [+0.0062, +0.0104] & +0.0117 [+0.0086, +0.0147] & -- \\
+Training mean & +0.0003 [+0.0001, +0.0005] & -0.0000 [-0.0012, +0.0012] & -- \\
+AR ridge (5) & +0.0002 [-0.0002, +0.0005] & -0.0005 [-0.0018, +0.0009] & -- \\
+GRU score & +0.0006 [-0.0002, +0.0015] & +0.0001 [-0.0012, +0.0014] & Yes \\
+EEG ridge & +0.0047 [+0.0030, +0.0068] & +0.0018 [-0.0009, +0.0047] & -- \\
+EEG elastic-net & +0.0001 [-0.0002, +0.0005] & -0.0005 [-0.0025, +0.0014] & -- \\
+EEG PCR & +0.0002 [-0.0012, +0.0019] & +0.0007 [-0.0007, +0.0023] & Yes \\
+EEG PLS & +0.0055 [+0.0016, +0.0098] & +0.0104 [+0.0056, +0.0153] & -- \\
+Riemannian KNN & +0.0165 [+0.0130, +0.0203] & +0.0171 [+0.0126, +0.0219] & -- \\
+GRU EEG & -0.0001 [-0.0015, +0.0012] & +0.0023 [-0.0011, +0.0062] & Yes \\
+Permuted EEG PCR & +0.0005 [+0.0002, +0.0009] & +0.0007 [-0.0008, +0.0024] & -- \\
+Hybrid ridge & +0.0035 [+0.0020, +0.0049] & +0.0013 [-0.0013, +0.0042] & Yes \\
+Hybrid PCR & -0.0002 [-0.0017, +0.0015] & +0.0008 [-0.0007, +0.0023] & Yes \\
+Hybrid PLS & +0.0051 [+0.0012, +0.0096] & +0.0095 [+0.0049, +0.0143] & -- \\
+GRU hybrid & -0.0009 [-0.0023, +0.0005] & +0.0009 [-0.0012, +0.0033] & Yes \\
+\bottomrule
+\end{tabular}
+\end{table}

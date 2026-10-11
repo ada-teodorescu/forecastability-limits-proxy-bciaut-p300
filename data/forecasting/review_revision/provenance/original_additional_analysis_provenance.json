@@ -1,0 +1,928 @@
+{
+  "analysis_date": "2026-10-11",
+  "models_retrained": false,
+  "new_baseline_fitted": "One affine OLS calibration correction in each of 15 LOSO folds; no tuning or blending.",
+  "baseline_forecasting_examples": 29820,
+  "baseline_subject_metrics": 405,
+  "new_posthoc_baseline_tests": 18,
+  "holm_family": "All 18 additional fixed-baseline contrasts",
+  "bootstrap_seed": 20261011,
+  "bootstrap_replicates": 10000,
+  "calibration_correction": {
+    "protocol": "docs/paper_revision/calibration_correction_protocol.md",
+    "fit": "Equal-session OLS from avatar-calibration mean to full online-session mean, using 98 sessions of 14 training subjects only.",
+    "held_out_information": "Avatar-calibration mean only; coefficients and forecasts shared across anchors and horizons.",
+    "n_fold_fits": 15,
+    "n_parameters_per_fold": 2,
+    "n_predictions": 29820,
+    "n_subject_metrics": 135,
+    "posthoc_tests": 18,
+    "holm_family": "All 18 correction-versus-context/expanding tests; separate from the earlier fixed-baseline family."
+  },
+  "baseline_target_views": "Fixed predictions evaluated once on the raw-score scale; residual conversion does not add a comparison.",
+  "expanding_mean_information": "Online blocks 0 through anchor, including blocks preceding the original ten-block context.",
+  "residual_diagnostic": "Pearson correlation within sessions, arithmetic session means within subjects, equal-subject mean; descriptive, no significance test.",
+  "residual_models": [
+    "autoreg_ridge_5",
+    "ridge_anchor_ts",
+    "elasticnet_anchor_ts",
+    "pcr_context_ts",
+    "pls_context_ts",
+    "riemannian_knn_anchor",
+    "pcr_context_ts_permuted_target",
+    "ridge_score5_anchor_ts",
+    "pcr_score5_context_ts",
+    "pls_score5_context_ts",
+    "gru_score_only",
+    "gru_eeg_reduced",
+    "gru_hybrid"
+  ],
+  "residual_summary_rows": 130,
+  "interval_scope": "Unadjusted descriptive subject percentiles; conditional on saved fits; shared LOSO training and overlapping windows remain limitations.",
+  "calibration_threshold": "In-sample reference: avatar blocks also contribute to calibration prototypes; no future online blocks are used.",
+  "calibration_diagnostics": {
+    "n_sessions": 105,
+    "nonpositive_avatar_means": 0,
+    "avatar_calibration_mean_quantiles": {
+      "min": 1.278974211215973,
+      "q25": 2.022496283054352,
+      "median": 2.293275761604309,
+      "q75": 2.478652334213257,
+      "max": 3.2800331830978395
+    },
+    "avatar_calibration_online_correlation": 0.9461129594855233,
+    "all_calibration_online_correlation": 0.958430087375259,
+    "online_minus_avatar_calibration_mean_bias": -0.44399735694556014
+  },
+  "verification": "Original context MAEs and all 1950 learned-model subject MAEs reproduced at absolute tolerance 1e-12; all archived targets and keys matched.",
+  "input_files": [
+    {
+      "path": "data/forecasting/review_revision/short_horizons/subject_metrics.csv",
+      "sha256": "ab2fa358c9d0b477f925a1d7a0a9cd504f1d08b1c602c412af620de0ed136e7f"
+    },
+    {
+      "path": "data/forecasting/step7_fold_metrics.csv",
+      "sha256": "58bdede9b81796cc2249e26eb907dc16beaf5361db3aa79e44c990fe11b3dc1f"
+    },
+    {
+      "path": "data/forecasting/step7_predictions.csv",
+      "sha256": "b36e55f7014e8da08a4f466bb1b95c9009712472f5ec8e26844a7fa7a4f604ed"
+    },
+    {
+      "path": "data/forecasting/step8_fold_metrics.csv",
+      "sha256": "8817fb806972611460cfde9b83e927e32fb42a5c22d1cbef578e3e248490dcec"
+    },
+    {
+      "path": "data/forecasting/step8_predictions.csv",
+      "sha256": "23b190ba1294f10e545ce09b10a0471bcf7b67a51c0205c61b74b7bfe610cf57"
+    },
+    {
+      "path": "data/scores/sub-01_ses-01_split-calibration_scores.npz",
+      "sha256": "ccc10b83273fd8bc7dcbc755d5784d684601bf0aa4e75e3d2f3346baf2dc110a"
+    },
+    {
+      "path": "data/scores/sub-01_ses-01_split-online_scores.npz",
+      "sha256": "86a2630dbf3fe1522e1e49c0623f37055411b043cec91bee8a56330cb4b06a4f"
+    },
+    {
+      "path": "data/scores/sub-01_ses-02_split-calibration_scores.npz",
+      "sha256": "3966f2bbbaa12d051eb43b947fa7ef05a791a63b0aa24cb6e7ca0e2f97ba56ec"
+    },
+    {
+      "path": "data/scores/sub-01_ses-02_split-online_scores.npz",
+      "sha256": "219924019159e46a3af648b16f958033f8ad40fa741b136d846b4902889f7a88"
+    },
+    {
+      "path": "data/scores/sub-01_ses-03_split-calibration_scores.npz",
+      "sha256": "9880867d7aecb9e26e3e12e48d2ef6e9ef5331d93916cc724421cd50e613f50e"
+    },
+    {
+      "path": "data/scores/sub-01_ses-03_split-online_scores.npz",
+      "sha256": "3149c2d6ec2d1cd5fd7e5137592d8d784aa89d4e3377bb3826011aaa345d3d4c"
+    },
+    {
+      "path": "data/scores/sub-01_ses-04_split-calibration_scores.npz",
+      "sha256": "ac8b1a6d7755f827eca598d31712493f09a1c2ce9915c174ca34fd715b44bee5"
+    },
+    {
+      "path": "data/scores/sub-01_ses-04_split-online_scores.npz",
+      "sha256": "058c213ef594c78304e52e7b2150758d4bf41dc7568116721b7624d7698e582f"
+    },
+    {
+      "path": "data/scores/sub-01_ses-05_split-calibration_scores.npz",
+      "sha256": "785a1d77867bbd58b9702fdf18d1da65630a9386be873194c7c269e7347b3060"
+    },
+    {
+      "path": "data/scores/sub-01_ses-05_split-online_scores.npz",
+      "sha256": "b4939f30363d4e0caf8f4fc7904caa24bfdc83ce2f266b272d2c9fec69f62469"
+    },
+    {
+      "path": "data/scores/sub-01_ses-06_split-calibration_scores.npz",
+      "sha256": "cbfb8734a0665e66da6caa2879289a8295fc4d4abd21fe324b07150fc35fcfe2"
+    },
+    {
+      "path": "data/scores/sub-01_ses-06_split-online_scores.npz",
+      "sha256": "163f0d01eac6c585e8020b0cd62badd2a6008b0260825646611d907951a59d02"
+    },
+    {
+      "path": "data/scores/sub-01_ses-07_split-calibration_scores.npz",
+      "sha256": "b9218dbb57a4f871d8e7a91258e3c33772ef1d056af14bbbf01e1dccbfeb795b"
+    },
+    {
+      "path": "data/scores/sub-01_ses-07_split-online_scores.npz",
+      "sha256": "8d86c52c714c219251b30bdae5f59d1035108fe3dca64f0abf031cf380233b61"
+    },
+    {
+      "path": "data/scores/sub-02_ses-01_split-calibration_scores.npz",
+      "sha256": "23d3f0048e5d681fddc910b34be0fce157c0700987a9043c6bdb642f5edf9dc4"
+    },
+    {
+      "path": "data/scores/sub-02_ses-01_split-online_scores.npz",
+      "sha256": "3fcec4ebe9f9b608b5c64568881b51b6a8922c6ab4ceb8135aa065d6452e51c0"
+    },
+    {
+      "path": "data/scores/sub-02_ses-02_split-calibration_scores.npz",
+      "sha256": "2fbe17a64574b2a45ade3da0e6c7053de026e3ddf0a89df4fdf4c88007985963"
+    },
+    {
+      "path": "data/scores/sub-02_ses-02_split-online_scores.npz",
+      "sha256": "3964c45132e4afa552ad14357a52d21f2ab50199c4407be6335d20a3b29ddd24"
+    },
+    {
+      "path": "data/scores/sub-02_ses-03_split-calibration_scores.npz",
+      "sha256": "a5bf47d24e274aa84d5ebfd50723a438d5f30dfcc8ccd37983e94bdd0ec87db2"
+    },
+    {
+      "path": "data/scores/sub-02_ses-03_split-online_scores.npz",
+      "sha256": "5ae8be36c955abde80dd297d6f21eecc5d3a524799501ba9bc059e23ec839feb"
+    },
+    {
+      "path": "data/scores/sub-02_ses-04_split-calibration_scores.npz",
+      "sha256": "176e1e92229d7cae6142989dd28eb48e0e20520e6979579ee028312c56ce8246"
+    },
+    {
+      "path": "data/scores/sub-02_ses-04_split-online_scores.npz",
+      "sha256": "17cecf41b9056c192075465a788751c746b9cf9e6a4e4bdd1e1df1b0eeb2d3c7"
+    },
+    {
+      "path": "data/scores/sub-02_ses-05_split-calibration_scores.npz",
+      "sha256": "e12fd93addc67bf9c0f51aac99bfda5f8ee457d9d1e66afda9fcc7785005ece2"
+    },
+    {
+      "path": "data/scores/sub-02_ses-05_split-online_scores.npz",
+      "sha256": "e12dfc4f92ed4e42d9ff9fad932e9745f62f4bb53ca315d413cd22732db5d1c4"
+    },
+    {
+      "path": "data/scores/sub-02_ses-06_split-calibration_scores.npz",
+      "sha256": "553d93f08b3d81d4c89baa978a504240901beb52f042153c8fc2ffadedcd62cc"
+    },
+    {
+      "path": "data/scores/sub-02_ses-06_split-online_scores.npz",
+      "sha256": "db13bdb8032bad340b56f2abc60f1b054a0e65c06d68bf5581f4e97264d291f8"
+    },
+    {
+      "path": "data/scores/sub-02_ses-07_split-calibration_scores.npz",
+      "sha256": "3a7b6c3bdfebfa781207fb253975ec7e84c073d0f1d4a80509d220e1d5c418a7"
+    },
+    {
+      "path": "data/scores/sub-02_ses-07_split-online_scores.npz",
+      "sha256": "26d85cc9fe8de2b5be6827c7705635202463e97503878eefe52e0b2516388cbf"
+    },
+    {
+      "path": "data/scores/sub-03_ses-01_split-calibration_scores.npz",
+      "sha256": "afc7d881b63bd38150061376078b4bc6f72eef4977c9148ed31641da52cab2ab"
+    },
+    {
+      "path": "data/scores/sub-03_ses-01_split-online_scores.npz",
+      "sha256": "6534a5a576e57c3649ddd256bc90d30eb7e075ff6a3f86546dce73a982320157"
+    },
+    {
+      "path": "data/scores/sub-03_ses-02_split-calibration_scores.npz",
+      "sha256": "758db3d700f85969be392b8f1a75479b8ad7d921399938a135934130d67a5fc6"
+    },
+    {
+      "path": "data/scores/sub-03_ses-02_split-online_scores.npz",
+      "sha256": "6a94d9de2af41a89cb8740fcf349523d8b82e58e3dec8a1e966b35f445b5b5d6"
+    },
+    {
+      "path": "data/scores/sub-03_ses-03_split-calibration_scores.npz",
+      "sha256": "bcab2cf6e0afa011d1370a7824b858a0e83f31321e32570a6e263bbb6f3a81da"
+    },
+    {
+      "path": "data/scores/sub-03_ses-03_split-online_scores.npz",
+      "sha256": "1ef2d0f11789f4025a0da4a5eb74427bc2c08d16bcdf4aeecaa19828ed84ef9d"
+    },
+    {
+      "path": "data/scores/sub-03_ses-04_split-calibration_scores.npz",
+      "sha256": "9793ff8f48fef462815c638f12c22419dbd9d7f137405d5b7fd51fe4b180653d"
+    },
+    {
+      "path": "data/scores/sub-03_ses-04_split-online_scores.npz",
+      "sha256": "4207718fe4a2d4dfdd1f817d2e2b7d6255152d3d65cb7851558856f68b1689d3"
+    },
+    {
+      "path": "data/scores/sub-03_ses-05_split-calibration_scores.npz",
+      "sha256": "f1a3af828f86fc89a6a526aec89dabcb2e64ffa92b1fbda848e4d92228a6063e"
+    },
+    {
+      "path": "data/scores/sub-03_ses-05_split-online_scores.npz",
+      "sha256": "e41323dd540566a59099c9d5b2a234e849285921f91fe9da12b34646d55f7c4e"
+    },
+    {
+      "path": "data/scores/sub-03_ses-06_split-calibration_scores.npz",
+      "sha256": "41e67dc2b32fccd6fce3af12fda78c171a2f2c74d6e95a24ecff781d97108cdb"
+    },
+    {
+      "path": "data/scores/sub-03_ses-06_split-online_scores.npz",
+      "sha256": "9fb7f8043a71099028b641b6a559ae417c1a0515a4158c1da3b4b9ffb1f50de8"
+    },
+    {
+      "path": "data/scores/sub-03_ses-07_split-calibration_scores.npz",
+      "sha256": "92d3f2e1676f6bec95a91b5557a6e89264a4ffcf0bc1de142615d72a96c5660b"
+    },
+    {
+      "path": "data/scores/sub-03_ses-07_split-online_scores.npz",
+      "sha256": "1ff89ef247ad248befe43ae64d1cd85dbf7e59a1884a54c41e035bc49bfa5ce8"
+    },
+    {
+      "path": "data/scores/sub-04_ses-01_split-calibration_scores.npz",
+      "sha256": "063239c0147a39bbc0732ddb222fb12b22c0a8e7d8458d6eef40ff1a79da1749"
+    },
+    {
+      "path": "data/scores/sub-04_ses-01_split-online_scores.npz",
+      "sha256": "34a9ffb81642d043a2e52a025be8d05404eb5f855c730023f0f55d5ba37ae8c3"
+    },
+    {
+      "path": "data/scores/sub-04_ses-02_split-calibration_scores.npz",
+      "sha256": "6e38e101c6a656d5efe7cdeeec29c519b45526336684df79321654bd2b019421"
+    },
+    {
+      "path": "data/scores/sub-04_ses-02_split-online_scores.npz",
+      "sha256": "aedd8af2a02da936464944d06ac21def2a861c9a6b8f42da1b2810d3cf152391"
+    },
+    {
+      "path": "data/scores/sub-04_ses-03_split-calibration_scores.npz",
+      "sha256": "94ac03058514f7d8876b6254084f7754f101907eca57c528720e34ecc9181bab"
+    },
+    {
+      "path": "data/scores/sub-04_ses-03_split-online_scores.npz",
+      "sha256": "22d035509c5d38be02e55df9fafdc9547e91cbeff66b73bd4319b04cfcdf1860"
+    },
+    {
+      "path": "data/scores/sub-04_ses-04_split-calibration_scores.npz",
+      "sha256": "ee56876df13d9faecc0dbb07f2123a910ff32e0ee3672391f89005f55220bd3e"
+    },
+    {
+      "path": "data/scores/sub-04_ses-04_split-online_scores.npz",
+      "sha256": "4a20602ab5fdaabfe6268c9e5355febc37da65325537301d5df5b238ab1d2f02"
+    },
+    {
+      "path": "data/scores/sub-04_ses-05_split-calibration_scores.npz",
+      "sha256": "2bdb86f7774974039a89855272e11d7a0c76f3457c4558e4b164233ab1db285f"
+    },
+    {
+      "path": "data/scores/sub-04_ses-05_split-online_scores.npz",
+      "sha256": "640ec147345d4e0174c064508a785237b4ae133a5125e8c474113c7b774b0e97"
+    },
+    {
+      "path": "data/scores/sub-04_ses-06_split-calibration_scores.npz",
+      "sha256": "3b94274b763de4ebe65b8e9eacfa9fae32977c5578dbd6afb5b088e3de245be0"
+    },
+    {
+      "path": "data/scores/sub-04_ses-06_split-online_scores.npz",
+      "sha256": "c59d426d2c6ae55647c02691fade8a1d536c8ca1cd1abe3b96dd52710072efba"
+    },
+    {
+      "path": "data/scores/sub-04_ses-07_split-calibration_scores.npz",
+      "sha256": "889059be4477ec169fdf9be6bb283cb9b236dd5c62da52a899cca99c7e1ef9d9"
+    },
+    {
+      "path": "data/scores/sub-04_ses-07_split-online_scores.npz",
+      "sha256": "a0c38f9d1933bca349920a5ef57338edcd47c067ca94b8c174d3066ac11a965f"
+    },
+    {
+      "path": "data/scores/sub-05_ses-01_split-calibration_scores.npz",
+      "sha256": "6e548eb054506ff95981fbe47d376700ef3e98ff9387252cae2ec5be42e85f49"
+    },
+    {
+      "path": "data/scores/sub-05_ses-01_split-online_scores.npz",
+      "sha256": "deaeef678e34e41cd257685d0d55c9d62ca04a37060a64b6e3574fdeda6fef55"
+    },
+    {
+      "path": "data/scores/sub-05_ses-02_split-calibration_scores.npz",
+      "sha256": "d682ba1c3fd5a00b86b22531122c998a463b1a3c8c41f3c99defad247221019d"
+    },
+    {
+      "path": "data/scores/sub-05_ses-02_split-online_scores.npz",
+      "sha256": "fed792342e598d9f8b2fd92d83f823199f39c0093d68553ccecbe7c65edf05ef"
+    },
+    {
+      "path": "data/scores/sub-05_ses-03_split-calibration_scores.npz",
+      "sha256": "1471efd0593ee84666cd7b4d47728f9b17ace78832d8982d3f21a4a07d6db29a"
+    },
+    {
+      "path": "data/scores/sub-05_ses-03_split-online_scores.npz",
+      "sha256": "fc03ed68377c80aec407358e1b6f603b84e5a3636c22fa862303c7faed2f6333"
+    },
+    {
+      "path": "data/scores/sub-05_ses-04_split-calibration_scores.npz",
+      "sha256": "0169c10759cc3fc43c68d824cf45a2659db486a31f737f1cffa948286297cb59"
+    },
+    {
+      "path": "data/scores/sub-05_ses-04_split-online_scores.npz",
+      "sha256": "08a3feaa17b12b0086c51cfec0dc9efdce3c8c4a0b0d4e782729135ae2fb3ed7"
+    },
+    {
+      "path": "data/scores/sub-05_ses-05_split-calibration_scores.npz",
+      "sha256": "f7355962738d671dac159bfc9ed04d5c8d6bdb346454bf0efb3d01b01210ba60"
+    },
+    {
+      "path": "data/scores/sub-05_ses-05_split-online_scores.npz",
+      "sha256": "501a143695fa0c46f9f87b0e5e326a9e891c9d67c6fe50c37e3b17fd1d9bcdf0"
+    },
+    {
+      "path": "data/scores/sub-05_ses-06_split-calibration_scores.npz",
+      "sha256": "375820d42485255030957229dba2ba4721c60b228284a350ca801617a200d8a7"
+    },
+    {
+      "path": "data/scores/sub-05_ses-06_split-online_scores.npz",
+      "sha256": "79a7e64f05bae445cf3f6637b35a3b0821cc09cb93d7bb3d8654931fd0309672"
+    },
+    {
+      "path": "data/scores/sub-05_ses-07_split-calibration_scores.npz",
+      "sha256": "4f78444f1ed7d3ada8080372a94ecf62d193230c3a1827be8867154949d58735"
+    },
+    {
+      "path": "data/scores/sub-05_ses-07_split-online_scores.npz",
+      "sha256": "0e524af9a80e5aff3ec0a7eb4255be157ec8c19f158042f2c0850f226b2c3e42"
+    },
+    {
+      "path": "data/scores/sub-06_ses-01_split-calibration_scores.npz",
+      "sha256": "b8999745885cc09178d3c5be5f95ccbda7f4132be5e14199034af0a2a9308073"
+    },
+    {
+      "path": "data/scores/sub-06_ses-01_split-online_scores.npz",
+      "sha256": "3b8cb35904c8f2b92ffe03366a41f7baeee802d1f568a4953e80cf83a98b1b54"
+    },
+    {
+      "path": "data/scores/sub-06_ses-02_split-calibration_scores.npz",
+      "sha256": "15d7989f82d5fdcc45bdc2c1bfa24893604ff7e4ae40b4ef11519bfd37c7b70e"
+    },
+    {
+      "path": "data/scores/sub-06_ses-02_split-online_scores.npz",
+      "sha256": "a32493961082b3ebd1fe9a32350c9e68acdbc3b767375723cf80497cd4d5f35d"
+    },
+    {
+      "path": "data/scores/sub-06_ses-03_split-calibration_scores.npz",
+      "sha256": "13bdfb22429c8a3c0890c1805649353aa0216e2c60c97a3758051f246851b85c"
+    },
+    {
+      "path": "data/scores/sub-06_ses-03_split-online_scores.npz",
+      "sha256": "b400b87f7f01593e1f5a7982689fc94f9ec7090a665d82307ef87b3acb47c4bb"
+    },
+    {
+      "path": "data/scores/sub-06_ses-04_split-calibration_scores.npz",
+      "sha256": "48ae49d5139b4a07f25d9d7fbec30094152e95087b03fc699604431e7f5dbb99"
+    },
+    {
+      "path": "data/scores/sub-06_ses-04_split-online_scores.npz",
+      "sha256": "36fca575e02c4ec0901f2d7521f4933066fc723dc2bccd9c2a8752419e686ccc"
+    },
+    {
+      "path": "data/scores/sub-06_ses-05_split-calibration_scores.npz",
+      "sha256": "a2d404b38c107c3d3b268dacfa60f10395ebf1c82d4a91a91ea7c1fed58e126d"
+    },
+    {
+      "path": "data/scores/sub-06_ses-05_split-online_scores.npz",
+      "sha256": "a7c5336db80eecb3350bf4713a2634dd2f4a0520f0c2f305f1ef6be2ae9753cf"
+    },
+    {
+      "path": "data/scores/sub-06_ses-06_split-calibration_scores.npz",
+      "sha256": "21f24316a136994439cbaf48086375aa75863d3b93fee0afb5a5bc722865c6f2"
+    },
+    {
+      "path": "data/scores/sub-06_ses-06_split-online_scores.npz",
+      "sha256": "b387968f812947783b6a17f7394b42c46db161aae99200d7f6a6e61118282a0e"
+    },
+    {
+      "path": "data/scores/sub-06_ses-07_split-calibration_scores.npz",
+      "sha256": "4552b530ca32913972d50c1a5185b071b9ec9b782e4a4263c036bc50078e2c0b"
+    },
+    {
+      "path": "data/scores/sub-06_ses-07_split-online_scores.npz",
+      "sha256": "22444d105642b35869cd1c0c411d0c9077f9fa5596ec8f753b706e18aba2d293"
+    },
+    {
+      "path": "data/scores/sub-07_ses-01_split-calibration_scores.npz",
+      "sha256": "f6e92cdba3fa9144bbd607e85dc1904e112a2ae8f6861614ac11ddf094124402"
+    },
+    {
+      "path": "data/scores/sub-07_ses-01_split-online_scores.npz",
+      "sha256": "0ec96fcb3de651cfeb5ce130db67abd8346a6b68be84a0fc31fd23546e347e0f"
+    },
+    {
+      "path": "data/scores/sub-07_ses-02_split-calibration_scores.npz",
+      "sha256": "1275aa7e77c976088f41694eeaf874bf6f8cdcbb2c369661fcdb981cfb04e384"
+    },
+    {
+      "path": "data/scores/sub-07_ses-02_split-online_scores.npz",
+      "sha256": "007cd1c0178f5a6666406943506f11040ab8e7e89ef198df2f3d3f9979912ced"
+    },
+    {
+      "path": "data/scores/sub-07_ses-03_split-calibration_scores.npz",
+      "sha256": "36bdc01b634996af83521e57303040068d7657c68ee8a75d9a86b3c494e12bd2"
+    },
+    {
+      "path": "data/scores/sub-07_ses-03_split-online_scores.npz",
+      "sha256": "6f43d4a848d5081d0a0c46b45fb591642e76a1fd4edcbb38a1b3d4712553b57b"
+    },
+    {
+      "path": "data/scores/sub-07_ses-04_split-calibration_scores.npz",
+      "sha256": "cc9a929b870be5f88b765d487097ec9f9804d87ee472a40afd7e77d43ca98167"
+    },
+    {
+      "path": "data/scores/sub-07_ses-04_split-online_scores.npz",
+      "sha256": "91f8ee72012cd3bd5384b8376fbc93c282e247b4acf89dc941324f82bfcc91cf"
+    },
+    {
+      "path": "data/scores/sub-07_ses-05_split-calibration_scores.npz",
+      "sha256": "a427010df4d0f08933e4eb9dcf4fe6b90b00924487a380b3dbf36cd8654d4030"
+    },
+    {
+      "path": "data/scores/sub-07_ses-05_split-online_scores.npz",
+      "sha256": "8e5c3b3f6d1b1f85aacf67d6ed97a174d9b3e06de850a202c9dc0194e1efde2e"
+    },
+    {
+      "path": "data/scores/sub-07_ses-06_split-calibration_scores.npz",
+      "sha256": "d7f6fe7de4611b8237a1972101faa74469613683905c53cf2fd5d428fb6b7732"
+    },
+    {
+      "path": "data/scores/sub-07_ses-06_split-online_scores.npz",
+      "sha256": "87441ce47243a85f19870a11af0b4c222918300e47a3538bc394bed8c0b3777f"
+    },
+    {
+      "path": "data/scores/sub-07_ses-07_split-calibration_scores.npz",
+      "sha256": "154a091360fc8a46570accc737f78515eef87bcdcbac51323f46b53d83329c60"
+    },
+    {
+      "path": "data/scores/sub-07_ses-07_split-online_scores.npz",
+      "sha256": "2ab6fd42b2c5ef9cced09a3922cd8f31d76427b5fcff4958e2743973f5ca9c5e"
+    },
+    {
+      "path": "data/scores/sub-08_ses-01_split-calibration_scores.npz",
+      "sha256": "21a575037d0996a9b6c293327380d99c20b7f71a5d84aa1f5c647aed45dd4668"
+    },
+    {
+      "path": "data/scores/sub-08_ses-01_split-online_scores.npz",
+      "sha256": "d6e1edd996d8e2036463b750a21acb62579e6f92b24ad0acd869515e5f72607a"
+    },
+    {
+      "path": "data/scores/sub-08_ses-02_split-calibration_scores.npz",
+      "sha256": "5368cf1f88fb595683b4c1b6f2c2bddef18db36aa1014b96caee9dc3a325da30"
+    },
+    {
+      "path": "data/scores/sub-08_ses-02_split-online_scores.npz",
+      "sha256": "7f5b2439b1f238060592c166bbb7c86711a5b02c2915384a53e7b98f7d74c13e"
+    },
+    {
+      "path": "data/scores/sub-08_ses-03_split-calibration_scores.npz",
+      "sha256": "6257cda38cffaec2f6d5b1220ada8feabb3251c4428e5f6f776e38d6c7759b2b"
+    },
+    {
+      "path": "data/scores/sub-08_ses-03_split-online_scores.npz",
+      "sha256": "01f446682b218f3672bfdd032c2ef76d0ec79313b051f40b81f48d9966180cfe"
+    },
+    {
+      "path": "data/scores/sub-08_ses-04_split-calibration_scores.npz",
+      "sha256": "aca5b62cd9512ce71a3f61679cc645da920b7247298569e2a40aa615f76ee1e9"
+    },
+    {
+      "path": "data/scores/sub-08_ses-04_split-online_scores.npz",
+      "sha256": "12d92666831e662ac55e6328e39146aacbeb0f16af336e9abe26bb7eae296dd6"
+    },
+    {
+      "path": "data/scores/sub-08_ses-05_split-calibration_scores.npz",
+      "sha256": "37bed6e2a27ed3ff34bf6ee31f13d55f97068e24350462a21e9d70ffe98a4d4d"
+    },
+    {
+      "path": "data/scores/sub-08_ses-05_split-online_scores.npz",
+      "sha256": "ff77d92b843cd4d740195add31ce191b863360fc1ca10a4787e1e70ef9e8fdef"
+    },
+    {
+      "path": "data/scores/sub-08_ses-06_split-calibration_scores.npz",
+      "sha256": "29ddb5f6774081ee48eaff62d2f97f3093d009bf567bba1892d0a05db615e692"
+    },
+    {
+      "path": "data/scores/sub-08_ses-06_split-online_scores.npz",
+      "sha256": "70d7f2228612f008f93de93176679ec7d27dbd06d1ee301729d7324ddee13b47"
+    },
+    {
+      "path": "data/scores/sub-08_ses-07_split-calibration_scores.npz",
+      "sha256": "796df406a34a52252acd024b77367b69d3b7fa13f69f033e172d6b43e804f530"
+    },
+    {
+      "path": "data/scores/sub-08_ses-07_split-online_scores.npz",
+      "sha256": "08b7a6ee335007b2ec61c84da36f305990bbf61c85512df363f47d5a20f7d371"
+    },
+    {
+      "path": "data/scores/sub-09_ses-01_split-calibration_scores.npz",
+      "sha256": "2bb4e5cc450369c2c822c6b1d939b17bbbbed80ee5a339849864acffe39eac44"
+    },
+    {
+      "path": "data/scores/sub-09_ses-01_split-online_scores.npz",
+      "sha256": "283a342ea28126fe5eb8ec187e4663cd2531f6ceb07c26461240b318ea76bf8d"
+    },
+    {
+      "path": "data/scores/sub-09_ses-02_split-calibration_scores.npz",
+      "sha256": "9e0fb47ad4e48bf0653b7f916d7088eccfe025c9e3f8ee9eff95af440008fce1"
+    },
+    {
+      "path": "data/scores/sub-09_ses-02_split-online_scores.npz",
+      "sha256": "2f6a1fde15f34f89c2fe110c9acafe36cf1df1949a037e4b495e0a1e37a1a583"
+    },
+    {
+      "path": "data/scores/sub-09_ses-03_split-calibration_scores.npz",
+      "sha256": "e87213740ecb0fb2b120f93a815202787b48136f30b40efcd6546b0a3909aefd"
+    },
+    {
+      "path": "data/scores/sub-09_ses-03_split-online_scores.npz",
+      "sha256": "f356cc1b04c46ffa8d7a5e5813c9bb785b9da2028c76492f72afc5160e86ec04"
+    },
+    {
+      "path": "data/scores/sub-09_ses-04_split-calibration_scores.npz",
+      "sha256": "baa7afefe4d50e587099222e398e31c038b64226d36a33c9adb6c8c415807440"
+    },
+    {
+      "path": "data/scores/sub-09_ses-04_split-online_scores.npz",
+      "sha256": "c2679e9d27162f49e1508f739ac15b74a1901b4c5565bc7f3d932536638d40e4"
+    },
+    {
+      "path": "data/scores/sub-09_ses-05_split-calibration_scores.npz",
+      "sha256": "5f0ab12b949853ac3ccc73cdfb870d175b598b08c7bff423d1ccd7b0856ecf12"
+    },
+    {
+      "path": "data/scores/sub-09_ses-05_split-online_scores.npz",
+      "sha256": "125084e4df6303a806125879bf4123ce9b1a68e5d0942ce41d2fe468fd91ac55"
+    },
+    {
+      "path": "data/scores/sub-09_ses-06_split-calibration_scores.npz",
+      "sha256": "98f7d9a738cd3dbcda09f5760503294c0f0793760a5b0b81ba4ff69dbffcca42"
+    },
+    {
+      "path": "data/scores/sub-09_ses-06_split-online_scores.npz",
+      "sha256": "47c3be23e69dfeedcd7fd5fde1d849ea8e295c18810c94e4b86654dabd45000c"
+    },
+    {
+      "path": "data/scores/sub-09_ses-07_split-calibration_scores.npz",
+      "sha256": "407069dd34cbd253e020688d9f3e57bc21c7ba3f80d48c1889456aafbb12d639"
+    },
+    {
+      "path": "data/scores/sub-09_ses-07_split-online_scores.npz",
+      "sha256": "ce4f9f17cc777f02afdc0df8a03933ccdd1af109ad75c322de08dfdcc35e9d99"
+    },
+    {
+      "path": "data/scores/sub-10_ses-01_split-calibration_scores.npz",
+      "sha256": "8d22639afadbbc54b962915aa4e4335676b7ca485a9632a58a7e2c5a6ca2e456"
+    },
+    {
+      "path": "data/scores/sub-10_ses-01_split-online_scores.npz",
+      "sha256": "e9fe6948e86b4040148560bdbf3daa99040b0eeb341c32a9dd36f8027c7ee2b3"
+    },
+    {
+      "path": "data/scores/sub-10_ses-02_split-calibration_scores.npz",
+      "sha256": "6684c31e576f2ec35ac8f0f3e010aa620f1788bb7c042f2155104cb9ea1d3425"
+    },
+    {
+      "path": "data/scores/sub-10_ses-02_split-online_scores.npz",
+      "sha256": "35fd54cd05fcd2240e10fce483a92df5278b27bf68f556dd14f6403456a9211c"
+    },
+    {
+      "path": "data/scores/sub-10_ses-03_split-calibration_scores.npz",
+      "sha256": "a06a45bc3196f32c1976669ab7f069c160aeeeb18a3f3c361b5ac1e3d441b6b8"
+    },
+    {
+      "path": "data/scores/sub-10_ses-03_split-online_scores.npz",
+      "sha256": "68c3b299825b22e9abea9e7968371f9f7560735ae807540fc456564da565e573"
+    },
+    {
+      "path": "data/scores/sub-10_ses-04_split-calibration_scores.npz",
+      "sha256": "afe0e58a27550979bd5986cd9095da4ee41efa517223e711f7dab91d9b1f5296"
+    },
+    {
+      "path": "data/scores/sub-10_ses-04_split-online_scores.npz",
+      "sha256": "18372eb658f6a3d63778895a7e06642b52c3f2de4f638492108b1dcfdead166e"
+    },
+    {
+      "path": "data/scores/sub-10_ses-05_split-calibration_scores.npz",
+      "sha256": "36e59aa3e7193f8d282beab685143526d11f6cc65d3ecc7ede3c01263fdf724a"
+    },
+    {
+      "path": "data/scores/sub-10_ses-05_split-online_scores.npz",
+      "sha256": "443e1b1df511f4197275c1befdfedb99cc81f9cb0f5940030f9a5c67ddbaac1b"
+    },
+    {
+      "path": "data/scores/sub-10_ses-06_split-calibration_scores.npz",
+      "sha256": "e7c64224f1d864279e4ce9b1fe59fe07d3d9fed4eb45db2d718157dfb17dc6fa"
+    },
+    {
+      "path": "data/scores/sub-10_ses-06_split-online_scores.npz",
+      "sha256": "f546a4ece2460a34db5b77adf5dc721cfd21c9ef55505d636e5d895f1f684d33"
+    },
+    {
+      "path": "data/scores/sub-10_ses-07_split-calibration_scores.npz",
+      "sha256": "9b4f357040a9c40c62b2a863938ecccc9d4fafee6d02811b412d43e12b467d75"
+    },
+    {
+      "path": "data/scores/sub-10_ses-07_split-online_scores.npz",
+      "sha256": "b9ff1fe9295fd20bfc73162bdb9f3d8319a32cbd363c2bd596ee84efd71378d7"
+    },
+    {
+      "path": "data/scores/sub-11_ses-01_split-calibration_scores.npz",
+      "sha256": "226d4c4a736f81122c1d01d4038f6ff3246c15abad0699f500b1a2ae7feb84ea"
+    },
+    {
+      "path": "data/scores/sub-11_ses-01_split-online_scores.npz",
+      "sha256": "5d3f45f097abed1cb596a61b9f6ffaab7e5a9546e77734f7f7a895230b4aaee0"
+    },
+    {
+      "path": "data/scores/sub-11_ses-02_split-calibration_scores.npz",
+      "sha256": "d3954fb74ef983ff612d9e3ed489cf8032c99fd86780466f48dfbd5af57d586b"
+    },
+    {
+      "path": "data/scores/sub-11_ses-02_split-online_scores.npz",
+      "sha256": "084509d80d92d68d4caa978df76056e8b8f62a1dbd39ffa2981561067326ebaf"
+    },
+    {
+      "path": "data/scores/sub-11_ses-03_split-calibration_scores.npz",
+      "sha256": "629c0b9849eaf9a678f74ad952bd18c4c3fca84055eb2fe3edce18fd4b74ce43"
+    },
+    {
+      "path": "data/scores/sub-11_ses-03_split-online_scores.npz",
+      "sha256": "23b57ba68127dacd7b55988ede463126b3d617249951cdc241971daff802cadf"
+    },
+    {
+      "path": "data/scores/sub-11_ses-04_split-calibration_scores.npz",
+      "sha256": "b0e89f0e0af11324dfca90badb77a0aa632fc50ad14aa8d4233830e28f2125e7"
+    },
+    {
+      "path": "data/scores/sub-11_ses-04_split-online_scores.npz",
+      "sha256": "23ade2a078e974540dc5ab40e19c7ae6f080ff8fde7512aa951f20aed34e6ed0"
+    },
+    {
+      "path": "data/scores/sub-11_ses-05_split-calibration_scores.npz",
+      "sha256": "91f9dc52194d32546ecec371eaf182d7396eb9a2fe1d5c960a2e5801b1ac61c0"
+    },
+    {
+      "path": "data/scores/sub-11_ses-05_split-online_scores.npz",
+      "sha256": "a23f4d6b943c3f3b84a79e9b039b8037a7d0569ad49c3ed7000bb7f6544ea0ea"
+    },
+    {
+      "path": "data/scores/sub-11_ses-06_split-calibration_scores.npz",
+      "sha256": "701d82e0765b9c65c9c541880fa06fdb85eda41b081c4aa11aee2fb3c9f6bcf3"
+    },
+    {
+      "path": "data/scores/sub-11_ses-06_split-online_scores.npz",
+      "sha256": "dd50200936c0f0b671e487f68daf8695c42d3c754efec091dd3c0b1f3eddf0d8"
+    },
+    {
+      "path": "data/scores/sub-11_ses-07_split-calibration_scores.npz",
+      "sha256": "7eec156d79916024ec57b686fa5b32dba27d34b1027f013b8280120e3424be13"
+    },
+    {
+      "path": "data/scores/sub-11_ses-07_split-online_scores.npz",
+      "sha256": "199325acc71e97ce9773803a4aa5799de1bf99d32af03b24399c80502cd2cffe"
+    },
+    {
+      "path": "data/scores/sub-12_ses-01_split-calibration_scores.npz",
+      "sha256": "692e2edcad7a419fbc9804f0451882a05b2aa85ab8a664b2deff3803074048b6"
+    },
+    {
+      "path": "data/scores/sub-12_ses-01_split-online_scores.npz",
+      "sha256": "2015427ecde8fb759ea80f19166ff6a330378b2994db3e4946eaa1f937f5feaa"
+    },
+    {
+      "path": "data/scores/sub-12_ses-02_split-calibration_scores.npz",
+      "sha256": "6962222422627e080a6733bf0202b7ba01513206919b076c6d6b076d74cb19d3"
+    },
+    {
+      "path": "data/scores/sub-12_ses-02_split-online_scores.npz",
+      "sha256": "4893e887a0bcef7f4084bbea96395c50c94920c5da896e8ceca1dae2067198af"
+    },
+    {
+      "path": "data/scores/sub-12_ses-03_split-calibration_scores.npz",
+      "sha256": "df19fc06e86b89e055447d6313161f5ae3f26449876730fe22b171cd66d347ff"
+    },
+    {
+      "path": "data/scores/sub-12_ses-03_split-online_scores.npz",
+      "sha256": "8733acae22d4be3b1b3288593817dffaa2c6135f4a3cdcf98dc1c965dac40044"
+    },
+    {
+      "path": "data/scores/sub-12_ses-04_split-calibration_scores.npz",
+      "sha256": "6bb6e5ff72214dbed9d7ca4b036f74746a51a43aa20d635f99e9afd6eddc574e"
+    },
+    {
+      "path": "data/scores/sub-12_ses-04_split-online_scores.npz",
+      "sha256": "fd910407a654dc462e4f71d8b0de2ac4b8e2e590bda134bd63f1b6d00c43bd18"
+    },
+    {
+      "path": "data/scores/sub-12_ses-05_split-calibration_scores.npz",
+      "sha256": "bc18a4aea7aed7ebb31977d49cd330fa4afeea70966033ece8ca5f2609e609bb"
+    },
+    {
+      "path": "data/scores/sub-12_ses-05_split-online_scores.npz",
+      "sha256": "55be6941cff49fa20ef492f3d93420bf5fbaa6ffee739488ec46c25e75ae4f46"
+    },
+    {
+      "path": "data/scores/sub-12_ses-06_split-calibration_scores.npz",
+      "sha256": "802c0ac5fe5006ed7e41245375a8e5aa7cd882b35207c5b8746775af8db63cc1"
+    },
+    {
+      "path": "data/scores/sub-12_ses-06_split-online_scores.npz",
+      "sha256": "d2339d8bf0977b7b11d07867329623c3d3cce2c3684ac821334981a54ddece76"
+    },
+    {
+      "path": "data/scores/sub-12_ses-07_split-calibration_scores.npz",
+      "sha256": "d62a6a7f8a2d8fc07a6c4ac8ec945336da35f102d075df6f22cfd1edd51287f0"
+    },
+    {
+      "path": "data/scores/sub-12_ses-07_split-online_scores.npz",
+      "sha256": "16234040bc82ccb0a3c3de39e626dec02450f95b48994a8553ad8ae9ecbef4b6"
+    },
+    {
+      "path": "data/scores/sub-13_ses-01_split-calibration_scores.npz",
+      "sha256": "43f748cf437e2a62864bb63975642c329e8761625278b3b241e21befe795a9c5"
+    },
+    {
+      "path": "data/scores/sub-13_ses-01_split-online_scores.npz",
+      "sha256": "31554ad8172b738d3158c9c0fd9c5f256a37ca3c550707ea304f7121c89a6156"
+    },
+    {
+      "path": "data/scores/sub-13_ses-02_split-calibration_scores.npz",
+      "sha256": "90c6ae6efe84fc980d8d5f01c6f89df6d93c83ca3a5cf698b91eed7e78b30a47"
+    },
+    {
+      "path": "data/scores/sub-13_ses-02_split-online_scores.npz",
+      "sha256": "2b29347c9dfc0545277a85adf476fa2eb0c73d85302d79ab94797bb7fe995137"
+    },
+    {
+      "path": "data/scores/sub-13_ses-03_split-calibration_scores.npz",
+      "sha256": "b736ed8cac95ea9f4e439ca8a794b5415e16cb35b84db947426ad5454599c510"
+    },
+    {
+      "path": "data/scores/sub-13_ses-03_split-online_scores.npz",
+      "sha256": "bb9e1183bf5369c598dcd7aae84f16f0bf31dd86c575fb956979f808f7151e70"
+    },
+    {
+      "path": "data/scores/sub-13_ses-04_split-calibration_scores.npz",
+      "sha256": "c0b9cde84b33bf5123a171e053fbc58d5d9390835cc4b02f6a011e332edf33fc"
+    },
+    {
+      "path": "data/scores/sub-13_ses-04_split-online_scores.npz",
+      "sha256": "d001a82baf7ad6fd56699cca2f15fdede0d659055b1582c8d763620e88d8fab9"
+    },
+    {
+      "path": "data/scores/sub-13_ses-05_split-calibration_scores.npz",
+      "sha256": "1a8a62cb4da77cb9713d9631371e60cbb30b5a6203a89de9d55889da25271a1e"
+    },
+    {
+      "path": "data/scores/sub-13_ses-05_split-online_scores.npz",
+      "sha256": "c8af1878b2d1970e0883aaf4d0b0697d4c523acbd0f705a3ad6f71b35d803763"
+    },
+    {
+      "path": "data/scores/sub-13_ses-06_split-calibration_scores.npz",
+      "sha256": "2ce3445932b36b0be4879f47083cae0e657319dd617e25f8eadaf13c82795c41"
+    },
+    {
+      "path": "data/scores/sub-13_ses-06_split-online_scores.npz",
+      "sha256": "c8900cedd58b612c6bfe13c65ef876fd887502c615cd34b36398c2d521ae2e8f"
+    },
+    {
+      "path": "data/scores/sub-13_ses-07_split-calibration_scores.npz",
+      "sha256": "26b471d38f809d8df25e7efd76c6a602ccfb297f92292a7c50206b4eca16a6a4"
+    },
+    {
+      "path": "data/scores/sub-13_ses-07_split-online_scores.npz",
+      "sha256": "8d89cc22347def45a9d6778759ee029f4422d9099674902444efec25a5abe8e6"
+    },
+    {
+      "path": "data/scores/sub-14_ses-01_split-calibration_scores.npz",
+      "sha256": "f683a76762b199a155921d2d368a7ae84fcf481ceecc6e68352c9c711844867e"
+    },
+    {
+      "path": "data/scores/sub-14_ses-01_split-online_scores.npz",
+      "sha256": "ee3b7b4a05b7526e088886c4ccaba319660293d44a53ae0c8bb0581b3d2e0bd9"
+    },
+    {
+      "path": "data/scores/sub-14_ses-02_split-calibration_scores.npz",
+      "sha256": "b17d66d48cc3dd2c9d9d7d99472d8f61f39dfbeb5c20112c5e64c83f6ea88eeb"
+    },
+    {
+      "path": "data/scores/sub-14_ses-02_split-online_scores.npz",
+      "sha256": "57308d991340aab6f7a179c33d1625e6a7748f09e90c6283224e892e931aec94"
+    },
+    {
+      "path": "data/scores/sub-14_ses-03_split-calibration_scores.npz",
+      "sha256": "df43b9b03b80411837c9acac729f0a58d5309ecca76d83e69b1256a2bc8bad18"
+    },
+    {
+      "path": "data/scores/sub-14_ses-03_split-online_scores.npz",
+      "sha256": "bb5054b7e5fc5cc3bf9f1a5f4b283b874aac736c42bdb593fbe4ce626955b40c"
+    },
+    {
+      "path": "data/scores/sub-14_ses-04_split-calibration_scores.npz",
+      "sha256": "cb8a7c947520a2d3c5dd212588df58e6b5ffde5b6412ed5d348b78687c09f9ad"
+    },
+    {
+      "path": "data/scores/sub-14_ses-04_split-online_scores.npz",
+      "sha256": "64a4fef3c4d87bcd1e97d54f4f041d54fd49c7dc255a79272b7dd4701ee39285"
+    },
+    {
+      "path": "data/scores/sub-14_ses-05_split-calibration_scores.npz",
+      "sha256": "c7e1db3ff531aed4f73a0f0b1c9733592938fc3149aed5fc9c1663dc49369b46"
+    },
+    {
+      "path": "data/scores/sub-14_ses-05_split-online_scores.npz",
+      "sha256": "c21b040896e9159a971b447797fa24d2a839dd40be77f485ea6de0ec7abc2c48"
+    },
+    {
+      "path": "data/scores/sub-14_ses-06_split-calibration_scores.npz",
+      "sha256": "1e3694721c458c8c07d2b3095e3500fd5fa3d4f8e36b6bbfead62225dbbe1748"
+    },
+    {
+      "path": "data/scores/sub-14_ses-06_split-online_scores.npz",
+      "sha256": "202df3e19c98a594ffb125b266c97df39ea79668ca971729e63d7c658b21a6c1"
+    },
+    {
+      "path": "data/scores/sub-14_ses-07_split-calibration_scores.npz",
+      "sha256": "8e9e7654bd7b1f86ab4ac7f300acc05921db11ce087a3de3664e6a8fcb77bcc8"
+    },
+    {
+      "path": "data/scores/sub-14_ses-07_split-online_scores.npz",
+      "sha256": "b3f07d6c0435615fca2e21226e9e26af81b24bafd794ff81317809e2bed96b94"
+    },
+    {
+      "path": "data/scores/sub-15_ses-01_split-calibration_scores.npz",
+      "sha256": "3dbb219a1bd19b122c6d0d7e3fa31c1a50e549f5340a9bc35610b539ee16b76f"
+    },
+    {
+      "path": "data/scores/sub-15_ses-01_split-online_scores.npz",
+      "sha256": "152cc488d82604006f018c0d0d6d8e97ddd1ae24c38760b1f41883aafc118636"
+    },
+    {
+      "path": "data/scores/sub-15_ses-02_split-calibration_scores.npz",
+      "sha256": "fd797df43c0d75599db7c2b461d24880a44df090e6046cc672e3fd00fa6d391c"
+    },
+    {
+      "path": "data/scores/sub-15_ses-02_split-online_scores.npz",
+      "sha256": "1e6832448304f5fcfb332ae218bfe4c348b373b31e9a44bdaf210f5640a32b87"
+    },
+    {
+      "path": "data/scores/sub-15_ses-03_split-calibration_scores.npz",
+      "sha256": "504440dc9114cedf5a77c1ea3d665450a67f06eaa3c35a5cc091f8a8a0f92c7e"
+    },
+    {
+      "path": "data/scores/sub-15_ses-03_split-online_scores.npz",
+      "sha256": "7cb25b107fee3078bc75c43a6102ede1ecfcbe0eb0b2fe8af2fe2211ba2047f6"
+    },
+    {
+      "path": "data/scores/sub-15_ses-04_split-calibration_scores.npz",
+      "sha256": "a761d52f4473fd8daf05a2fafc3cf8c9d14ccfb2f62fd10784f5993869711b5d"
+    },
+    {
+      "path": "data/scores/sub-15_ses-04_split-online_scores.npz",
+      "sha256": "d99718c2415296c3531be9e41a535c4ff9b18ebee45de42a4fcd1cf325fd62dd"
+    },
+    {
+      "path": "data/scores/sub-15_ses-05_split-calibration_scores.npz",
+      "sha256": "d95e37ea80448cf0bd0792cb1bb6a33ca6d7ee1f4689808cf1c9f336f055b00c"
+    },
+    {
+      "path": "data/scores/sub-15_ses-05_split-online_scores.npz",
+      "sha256": "0f5ede2cab589bddc018030db33e623cac075ed0e7e803a83dbd568f3962eb58"
+    },
+    {
+      "path": "data/scores/sub-15_ses-06_split-calibration_scores.npz",
+      "sha256": "eef6510e815fab0275cc7687a66ae4860e21897e9c59cfd2c66f2c8fdd488e69"
+    },
+    {
+      "path": "data/scores/sub-15_ses-06_split-online_scores.npz",
+      "sha256": "947b76ac602c79592515cf737c30dbccae57e153a399ab0825a4ca721f94bfbb"
+    },
+    {
+      "path": "data/scores/sub-15_ses-07_split-calibration_scores.npz",
+      "sha256": "1304757f33336e0602d3a3de1e607eda6f90c8ea96558fd923c88bd7adaea0c9"
+    },
+    {
+      "path": "data/scores/sub-15_ses-07_split-online_scores.npz",
+      "sha256": "234aa54659acec400a9b3d90e57bbefc30ca3a31ffe7dc4481e05e4c5c3cca1d"
+    },
+    {
+      "path": "docs/paper_revision/calibration_correction_protocol.md",
+      "sha256": "c4c941e9df406d48b32e862cda06a3cc2ff4d8b2ef84eaecefa59ec6884e0348"
+    },
+    {
+      "path": "pipeline/build_paper_feedback_addendum.py",
+      "sha256": "3d2e78122f07d5db5b637189ee1364aa92bf5233f3bc189849ca08ba933748fb"
+    }
+  ]
+}

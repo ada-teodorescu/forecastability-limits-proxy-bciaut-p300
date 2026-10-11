@@ -29,9 +29,22 @@ AGENTS.md
 CLAUDE.md
 
 # Private writing and preparation materials
-/docs/
+/docs/*
+!/docs/paper_revision/
+/docs/paper_revision/*
+!/docs/paper_revision/supplementary_README.md
+!/docs/paper_revision/short_horizon_protocol.md
+!/docs/paper_revision/short_horizon_results.md
+!/docs/paper_revision/calibration_correction_protocol.md
+!/docs/paper_revision/reproduction.md
+!/docs/paper_revision/release_manifest.json
+!/docs/paper_revision/release_verification.json
+!/docs/paper_revision/supplementary_generated/
 /paper_revision/
-/output/
+/output/*
+!/output/pdf/
+/output/pdf/*
+!/output/pdf/supplementary_results.pdf
 *.tex
 *.bib
 *.cls
@@ -48,9 +61,10 @@ thesis*.pdf
 poster*.pdf
 ResearchPapers/
 thesis-source/
-/pipeline/build_paper_supplement.py
-/pipeline/verify_paper_inference.py
-/pipeline/revise_paper_analysis.py
+!/docs/paper_revision/supplementary_results.tex
+!/docs/paper_revision/supplementary_generated/*.tex
+!/docs/paper_revision/supplementary_generated/*.bib
+!/docs/paper_revision/supplementary_generated/*.bst
 
 # Unrelated work
 new_bci_dataset/
@@ -64,9 +78,11 @@ methodological-pipeline-v2/
 !/data/scores/
 /data/scores/*
 !/data/scores/sub-??_ses-??_split-online_scores.npz
+!/data/scores/sub-??_ses-??_split-calibration_scores.npz
 !/data/forecasting/
 /data/forecasting/*
 !/data/forecasting/step6_detrended_exploration.csv
+!/data/forecasting/step6_variance_decomposition.csv
 !/data/forecasting/step6c_step5_score_decomposition.csv
 !/data/forecasting/step7_fold_metrics.csv
 !/data/forecasting/step7_model_selection.csv
@@ -76,10 +92,26 @@ methodological-pipeline-v2/
 !/data/forecasting/step8_model_selection.csv
 !/data/forecasting/step8_paired_stats.csv
 !/data/forecasting/step8_summary.csv
+!/data/forecasting/step7_predictions.csv.gz
+!/data/forecasting/step8_predictions.csv.gz
 !/data/forecasting/step8_anomaly_predictions.csv
 !/data/forecasting/step8_anomaly_metrics.csv
 !/data/forecasting/step8_anomaly_paired_stats.csv
 !/data/forecasting/threshold_sensitivity.csv
+!/data/forecasting/review_revision/
+/data/forecasting/review_revision/*
+!/data/forecasting/review_revision/supplementary/
+!/data/forecasting/review_revision/short_horizons/
+!/data/forecasting/review_revision/inference_sensitivity/
+!/data/forecasting/review_revision/provenance/
+!/data/forecasting/review_revision/step8_anomaly_predictions.csv
+!/data/forecasting/review_revision/step8_anomaly_metrics.csv
+!/data/forecasting/review_revision/step8_anomaly_summary.csv
+!/data/forecasting/review_revision/step8_anomaly_paired_stats.csv
+!/data/forecasting/review_revision/threshold_sensitivity.csv
+!/data/forecasting/review_revision/audit.json
+/data/forecasting/review_revision/short_horizons/checkpoints/
+/data/forecasting/review_revision/short_horizons/*.zip
 !/data/forecasting/exp30_step8_grouped_inner_cv/
 /data/forecasting/exp30_step8_grouped_inner_cv/*
 !/data/forecasting/exp30_step8_grouped_inner_cv/step8_fold_metrics.csv
@@ -97,6 +129,16 @@ methodological-pipeline-v2/
 /outputs/forecasting/*
 !/outputs/forecasting/main_result_delta_mae_paired.pdf
 !/outputs/forecasting/main_result_delta_mae_paired.png
+!/outputs/forecasting/proxy_structure_and_forecasting.pdf
+!/outputs/forecasting/proxy_structure_and_forecasting.png
+!/outputs/forecasting/proxy_structure_and_forecasting.json
+!/outputs/forecasting/residual_prediction_diagnostic_h5.pdf
+!/outputs/forecasting/residual_prediction_diagnostic_h5.png
+!/outputs/forecasting/review_revision/
+/outputs/forecasting/review_revision/*
+!/outputs/forecasting/review_revision/short_horizons/
+/outputs/forecasting/review_revision/short_horizons/*
+!/outputs/forecasting/review_revision/short_horizons/short_horizon_mae.png
 /results/*
 !/results/figures/
 /results/figures/*

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import gzip
 import logging
 from dataclasses import dataclass
 from pathlib import Path
@@ -270,11 +271,15 @@ def write_csv(path: Path, *, columns: tuple[str, ...], records: list[dict[str, A
 
 
 def load_csv_rows(path: Path) -> tuple[list[str], list[dict[str, str]]]:
-    """Load a CSV file and return its header and rows."""
+    """Load a CSV or shipped lossless gzip archive and return its header/rows."""
 
     if not path.is_file():
-        raise FileNotFoundError(f"Missing CSV file: {path}")
-    with open(path, "r", encoding="utf-8", newline="") as fh:
+        compressed = path.with_suffix(path.suffix + ".gz")
+        if not compressed.is_file():
+            raise FileNotFoundError(f"Missing CSV file: {path}")
+        path = compressed
+    opener = gzip.open if path.suffix == ".gz" else open
+    with opener(path, "rt", encoding="utf-8", newline="") as fh:
         reader = csv.DictReader(fh)
         fieldnames = list(reader.fieldnames or [])
         rows = list(reader)

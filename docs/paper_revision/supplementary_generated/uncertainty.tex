@@ -1,0 +1,22 @@
+\begin{table}[!ht]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.1}
+\caption{Horizon-5 Gaussian NLL (lower is better), nominal 80\% interval coverage, and mean interval width in proxy-score units.}
+\label{tab:supp_uncertainty}
+\begin{tabular}{llrrr}
+\toprule
+Predictor & Fit & NLL & Coverage (\%) & Width \\
+\midrule
+Context mean & Raw & -0.0529 & 82.5 & 0.5852 \\
+GRU score & Raw & -0.0702 & 84.0 & 0.6168 \\
+GRU EEG & Raw & 0.6329 & 72.1 & 0.9303 \\
+GRU hybrid & Raw & 0.0049 & 80.3 & 0.6184 \\
+Context mean & Residual & -0.0529 & 82.5 & 0.5852 \\
+GRU score & Residual & -0.0909 & 82.3 & 0.5828 \\
+GRU EEG & Residual & -0.0466 & 81.6 & 0.5883 \\
+GRU hybrid & Residual & -0.0721 & 81.7 & 0.5780 \\
+\bottomrule
+\end{tabular}
+\end{table}

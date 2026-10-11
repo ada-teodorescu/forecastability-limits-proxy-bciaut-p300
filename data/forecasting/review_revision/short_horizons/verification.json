@@ -1,0 +1,20 @@
+{
+  "checks": [
+    {
+      "fold_rows": 480,
+      "kind": "classical",
+      "prediction_rows": 129360
+    },
+    {
+      "fold_rows": 120,
+      "kind": "gru",
+      "prediction_rows": 32340
+    }
+  ],
+  "expected_subject_metric_rows": 600,
+  "max_mae_reconstruction_error": 1.1102230246251565e-16,
+  "original_files_unchanged": true,
+  "passed": true,
+  "source_inputs_unchanged": true,
+  "total_subject_metric_rows": 600
+}

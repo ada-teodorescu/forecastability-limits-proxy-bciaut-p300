@@ -1,0 +1,13 @@
+{
+  "completed_at_utc": "2026-10-07T22:22:46.488233+00:00",
+  "production_gru_command": ".venv/Scripts/python.exe -m pipeline.exp41_paper_short_horizons --stage gru --workers 6 --threads 1",
+  "production_gru_tasks": 120,
+  "classical_tasks": 240,
+  "subject_metric_rows": 600,
+  "paired_mae_contrasts": 32,
+  "prediction_rows": 161700,
+  "gru_historical_git_revision": "48de5b0",
+  "torch_threads_per_worker": 1,
+  "verification": "verification.json",
+  "independent_statistical_audit": "independent_statistical_audit.json"
+}
